@@ -1,0 +1,61 @@
+import express from "express";
+import { auth } from "./middleware/auth";
+
+const app = express();
+
+app.use(express.json());
+
+app.post("/signup", () => {
+
+});
+
+app.post("/signin", () => {
+    
+});
+
+app.get("/profile", auth, () => {
+    
+})
+
+app.post("/order", auth, () => {
+    
+});
+
+app.get("/order/:orderId", auth, () => {
+    
+});
+
+app.get("/trades", () => {
+    
+});
+
+app.delete("/order/:orderId", auth, () => {
+    
+});
+
+app.get("/depth/:symbol", () => {
+    
+});
+
+app.get("/orders", auth, () => {
+    
+});
+
+app.get("/fills", auth, () => {
+    
+});
+
+app.get("/balance", auth, () => {
+    
+});
+
+app.get("/klines", () => {
+    
+});
+
+app.post("/balance", auth, () => {
+    
+});
+
+
+app.listen(3000, () => { console.log(`server running on 3000`) });
