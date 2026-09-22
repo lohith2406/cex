@@ -1,15 +1,15 @@
 import express from "express";
 import { auth } from "./middleware/auth";
+import { signup } from "./routes/signup";
+import { signin } from "./routes/signin";
 
 const app = express();
 
 app.use(express.json());
 
-app.post("/signup", );
+app.post("/signup", signup);
 
-app.post("/signin", () => {
-    
-});
+app.post("/signin", signin);
 
 app.get("/profile", auth, () => {
     

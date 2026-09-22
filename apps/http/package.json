@@ -4,6 +4,7 @@
   "type": "module",
   "private": true,
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/bun": "latest",
     "@types/express": "^5.0.6"
   },
@@ -11,8 +12,10 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "express": "^5.2.1",
     "@repo/auth": "workspace:*",
-    "@repo/validation": "workspace:*"
+    "@repo/db": "workspace:*",
+    "@repo/validation": "workspace:*",
+    "bcrypt": "^6.0.0",
+    "express": "^5.2.1"
   }
 }
