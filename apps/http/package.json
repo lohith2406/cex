@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "express": "^5.2.1",
-    "@repo/auth": "workspace:*"
+    "@repo/auth": "workspace:*",
+    "@repo/validation": "workspace:*"
   }
 }

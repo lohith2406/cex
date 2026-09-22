@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+
+  orders Order[]
+
+  makerFills Fill[] @relation("maker")
+  takerFills Fill[] @relation("taker")
+
+  positions Position[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(references: [id], fields: [userId])
+
+  market    Market
+  price     Int
+  qty       Int
+  filledQty Int
+  side      OrderSide
+  type      OrderType
+  status    OrderStatus
+
+  makerFills Fill[] @relation("makerOrder")
+  takerFills Fill[] @relation("takerOrder")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Fill {
+  id String @id @default(uuid())
+
+  qty    Int
+  side   OrderSide
+  price  Int
+  market Market
+
+  makerId String
+  maker   User   @relation("maker", references: [id], fields: [makerId])
+
+  takerId String
+  taker   User   @relation("taker", references: [id], fields: [takerId])
+
+  makerOrderId String
+  makerOrder   Order  @relation("makerOrder", references: [id], fields: [makerOrderId])
+
+  takerOrderId String
+  takerOrder   Order  @relation("takerOrder", references: [id], fields: [takerOrderId])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Position {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(references: [id], fields: [userId])
+
+  averagePrice     Int
+  liquidationPrice Int
+  margin           Int
+  market           Market
+  pnl              Int
+  qty              Int
+  type             PositionType
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, market])
+}
+
+enum Market {
+  BTC
+  ETH
+  SOL
+}
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  MARKET
+  LIMIT
+}
+
+enum OrderStatus {
+  OPEN
+  FILLED
+  CANCELLED
+  PARTIALLY_FILLED
+}
+
+enum PositionType {
+  LONG
+  SHORT
+}
