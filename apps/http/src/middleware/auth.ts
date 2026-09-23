@@ -24,5 +24,6 @@ export function auth(req: Request, res: Response, next: NextFunction) {
         return;
     }
     
+    req.userId = payload.userId;
     next();
 }

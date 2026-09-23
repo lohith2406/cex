@@ -8,5 +8,9 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@repo/redis": "workspace:*",
+    "@repo/validation": "workspace:*"
   }
 }

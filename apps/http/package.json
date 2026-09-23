@@ -15,6 +15,7 @@
     "@repo/auth": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/validation": "workspace:*",
+    "@repo/redis": "workspace:*",
     "bcrypt": "^6.0.0",
     "express": "^5.2.1"
   }

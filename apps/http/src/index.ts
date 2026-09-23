@@ -2,6 +2,7 @@ import express from "express";
 import { auth } from "./middleware/auth";
 import { signup } from "./routes/signup";
 import { signin } from "./routes/signin";
+import { createOrder } from "./routes/create-order";
 
 const app = express();
 
@@ -15,9 +16,7 @@ app.get("/profile", auth, () => {
     
 })
 
-app.post("/order", auth, () => {
-    
-});
+app.post("/order", auth, createOrder);
 
 app.get("/order/:orderId", auth, () => {
     
