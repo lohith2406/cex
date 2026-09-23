@@ -6,11 +6,14 @@
   "devDependencies": {
     "@types/bun": "latest"
   },
+  "scripts": {
+    "dev": "bun run --watch src/index.ts"
+  },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
     "@repo/redis": "workspace:*",
-    "@repo/validation": "workspace:*"
+    "@repo/common": "workspace:*"
   }
 }

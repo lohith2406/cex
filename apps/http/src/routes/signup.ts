@@ -1,8 +1,7 @@
 import { prisma } from "@repo/db";
-import { authSchema, zodErrorMessage } from "@repo/validation";
+import { authSchema, zodErrorMessage } from "@repo/common";
 import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
-
 
 export async function signup(req: Request, res: Response) {
     const parsed = authSchema.safeParse(req.body);

@@ -1,4 +1,4 @@
-import { createOrderBodySchema, zodErrorMessage, type EngineReply, type EngineRequest } from "@repo/validation";
+import { createOrderBodySchema, zodErrorMessage, type EngineRequest } from "@repo/common";
 import type { Request, Response } from "express";
 import { sendToEngine } from "../engine-client";
 
@@ -15,6 +15,7 @@ export async function createOrder(req: Request, res: Response) {
 
     const engineRequest: EngineRequest = {
         ...parsed.data,
+        type: "create_order",
         reqId: crypto.randomUUID(),
         userId: req.userId
     };
@@ -34,5 +35,8 @@ export async function createOrder(req: Request, res: Response) {
         return;
     }
 
-    res.status(201).json({ message: "Order placed" });
+    res.status(201).json({ 
+        message: "Order placed",
+        data: engineResponse.data 
+    });
 }

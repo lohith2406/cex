@@ -114,6 +114,7 @@ enum OrderStatus {
   FILLED
   CANCELLED
   PARTIALLY_FILLED
+  EXPIRED
 }
 
 enum PositionType {

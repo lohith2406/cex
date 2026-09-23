@@ -22,8 +22,8 @@
     "apps/engine": {
       "name": "engine",
       "dependencies": {
+        "@repo/common": "workspace:*",
         "@repo/redis": "workspace:*",
-        "@repo/validation": "workspace:*",
       },
       "devDependencies": {
         "@types/bun": "latest",
@@ -36,9 +36,9 @@
       "name": "http",
       "dependencies": {
         "@repo/auth": "workspace:*",
+        "@repo/common": "workspace:*",
         "@repo/db": "workspace:*",
         "@repo/redis": "workspace:*",
-        "@repo/validation": "workspace:*",
         "bcrypt": "^6.0.0",
         "express": "^5.2.1",
       },
@@ -87,6 +87,18 @@
       "devDependencies": {
         "@types/bun": "latest",
         "@types/jsonwebtoken": "^9.0.10",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
+    "packages/common": {
+      "name": "@repo/common",
+      "dependencies": {
+        "zod": "^4.6.5",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
       },
       "peerDependencies": {
         "typescript": "^5",
@@ -157,18 +169,6 @@
         "@types/react-dom": "19.2.5",
         "eslint": "10.9.1",
         "typescript": "7.0.2",
-      },
-    },
-    "packages/validation": {
-      "name": "@repo/validation",
-      "dependencies": {
-        "zod": "^4.6.5",
-      },
-      "devDependencies": {
-        "@types/bun": "latest",
-      },
-      "peerDependencies": {
-        "typescript": "^5",
       },
     },
   },
@@ -409,6 +409,8 @@
 
     "@repo/auth": ["@repo/auth@workspace:packages/auth"],
 
+    "@repo/common": ["@repo/common@workspace:packages/common"],
+
     "@repo/db": ["@repo/db@workspace:packages/db"],
 
     "@repo/eslint-config": ["@repo/eslint-config@workspace:packages/eslint-config"],
@@ -418,8 +420,6 @@
     "@repo/typescript-config": ["@repo/typescript-config@workspace:packages/typescript-config"],
 
     "@repo/ui": ["@repo/ui@workspace:packages/ui"],
-
-    "@repo/validation": ["@repo/validation@workspace:packages/validation"],
 
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 

@@ -7,5 +7,9 @@ export {
     engineReplySchema, 
     type EngineRequest, 
     type EngineReply,
-    createOrderBodySchema 
+    createOrderBodySchema,
+    type Market,
+    type OrderSide,
+    type OrderType,
+    type OrderStatus
 } from "./engine";

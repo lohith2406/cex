@@ -1,6 +1,6 @@
 import { generateToken } from "@repo/auth";
 import { prisma } from "@repo/db";
-import { authSchema, zodErrorMessage } from "@repo/validation";
+import { authSchema, zodErrorMessage } from "@repo/common";
 import type { Request, Response } from "express";
 import { JWT_SECRET } from "../env";
 import bcrypt from "bcrypt";

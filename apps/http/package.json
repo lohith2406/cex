@@ -8,13 +8,16 @@
     "@types/bun": "latest",
     "@types/express": "^5.0.6"
   },
+  "scripts": {
+    "dev": "bun run --watch src/index.ts"
+  },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
     "@repo/auth": "workspace:*",
     "@repo/db": "workspace:*",
-    "@repo/validation": "workspace:*",
+    "@repo/common": "workspace:*",
     "@repo/redis": "workspace:*",
     "bcrypt": "^6.0.0",
     "express": "^5.2.1"

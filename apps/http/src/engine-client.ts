@@ -1,4 +1,4 @@
-import { ENGINE_REPLIES, ENGINE_REQUESTS, engineReplySchema, zodErrorMessage, type EngineReply, type EngineRequest } from "@repo/validation";
+import { ENGINE_REPLIES, ENGINE_REQUESTS, engineReplySchema, zodErrorMessage, type EngineReply, type EngineRequest } from "@repo/common";
 import { engineRequestQueue, engineReplyQueue } from "./redis";
 
 let pendingEngineReplies: Map<string, (reply: EngineReply) => void> = new Map();
