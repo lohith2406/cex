@@ -1,8 +1,10 @@
-import { ENGINE_REPLIES, ENGINE_REQUESTS, engineRequestSchema, zodErrorMessage, type EngineReply } from "@repo/common";
+import { ENGINE_REPLIES, ENGINE_REQUESTS, engineRequestSchema, zodErrorMessage, type AddBalanceReply, type CreateOrderReply, type EngineReply, type GetBalanceReply } from "@repo/common";
 import { engineReplyQueue, engineRequestQueue } from "./redis";
 import { OrderBook } from "./store/orderbook";
+import { BalanceStore } from "./store/balance";
 
 const orderbook = new OrderBook();
+const balances = new BalanceStore();
 
 async function engineRequestListener() {
     for(;;) {
@@ -21,13 +23,31 @@ async function engineRequestListener() {
             continue;
         }
 
+        console.log("engine: received", parsed.data.type, parsed.data.reqId);
+
         if (parsed.data.type === "create_order") {
             const orderId = crypto.randomUUID();
-            const result = orderbook.placeOrder({ ...parsed.data, orderId });
-    
-            const reply: EngineReply = { 
+            const order = { ...parsed.data, orderId };
+            
+            if (!balances.canAfford(order)) {
+                await sendToBackend({ type: "error", reqId: order.reqId, error: "Insufficient balance" });
+                continue;
+            }
+            
+            balances.lock(order);
+            const result = orderbook.placeOrder(order);
+
+            for (const fill of result.fills ) {
+                balances.settle(fill, order.price);
+            }
+
+            if (result.remainingQty > 0 && order.orderType === "MARKET") {
+                balances.unlock(order, result.remainingQty);
+            }
+
+            const reply: CreateOrderReply = {
+                type: "create_order", 
                 reqId: parsed.data.reqId, 
-                ok: true,
                 data: {
                     orderId,
                     filledQty: result.filledQty,
@@ -37,9 +57,38 @@ async function engineRequestListener() {
                 } 
             };
 
-            await sendToBackend(reply)
+            await sendToBackend(reply);
+
         } else if (parsed.data.type === "add_balance") {
-            
+            balances.deposit(parsed.data.userId, {
+                asset: parsed.data.asset,
+                amount: parsed.data.amount
+            });
+
+            const balance = balances.getOrCreateBalances(parsed.data.userId)[parsed.data.asset];
+
+            const reply: AddBalanceReply = {
+                type: "add_balance",
+                reqId: parsed.data.reqId,
+                data: {
+                    asset: parsed.data.asset,
+                    total: balance.total,
+                    locked: balance.locked
+                }
+            }
+
+            await sendToBackend(reply);
+
+        } else if (parsed.data.type === "get_balance") {
+            const userBalances = balances.getOrCreateBalances(parsed.data.userId);
+
+            const reply: GetBalanceReply = {
+                type: "get_balance",
+                reqId: parsed.data.reqId,
+                data: userBalances
+            }
+
+            await sendToBackend(reply);
         }
     }
 }
@@ -47,5 +96,6 @@ async function engineRequestListener() {
 engineRequestListener()
 
 async function sendToBackend(response: EngineReply) {
+    console.log("engine: replying", response.type, response.reqId);
     await engineReplyQueue.lPush(ENGINE_REPLIES, JSON.stringify(response));
 }

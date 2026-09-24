@@ -34,42 +34,102 @@ export const addBalanceRequestSchema = z.object({
     amount: z.number().int().positive(),
 });
 
+export const getBalanceRequestSchema = z.object({
+    type: z.literal("get_balance"),
+    reqId: z.uuid(),
+    userId: z.uuid(),
+})
+
 export const engineRequestSchema = z.discriminatedUnion("type", [
     createOrderRequestSchema,
-    addBalanceRequestSchema
+    addBalanceRequestSchema,
+    getBalanceRequestSchema
 ]);
 
 export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>;
 export type AddBalanceRequest = z.infer<typeof addBalanceRequestSchema>;
+export type GetBalanceRequest = z.infer<typeof getBalanceRequestSchema>
 
-export const engineReplySchema = z.discriminatedUnion("ok", [
-    z.object({
-        reqId: z.uuid(), 
-        ok: z.literal(true),
-        data: z.object({
-            orderId: z.uuid(),
-            filledQty: z.number().int(),
-            remainingQty: z.number().int(),
-            status: orderStatusSchema,
-            fills: z.array(z.object({
-                price: z.number().int(),
-                qty: z.number().int(),
-                makerOrderId: z.string(),
-                takerOrderId: z.string()
-            }))
-        })
+export const fillSchema = z.object({
+    market: marketSchema,
+    price: z.number().int(),
+    qty: z.number().int(),
+    takerSide: sideSchema,
+    makerOrderId: z.string(),
+    makerUserId: z.string(),
+    takerOrderId: z.string(),
+    takerUserId: z.string(),
+});
+
+export type Fill = z.infer<typeof fillSchema>;
+
+export const createOrderReplySchema = z.object({
+    type: z.literal("create_order"),
+    reqId: z.uuid(),
+    data: z.object({
+        orderId: z.uuid(),
+        filledQty: z.number().int(),
+        remainingQty: z.number().int(),
+        status: orderStatusSchema,
+        fills: z.array(fillSchema),
     }),
-    z.object({
-        reqId: z.uuid(),
-        ok: z.literal(false),
-        error: z.string()
-    })
+});
+
+export const addBalanceReplySchema = z.object({
+    type: z.literal("add_balance"),
+    reqId: z.uuid(),
+    data: z.object({
+        asset: assetSchema,
+        total: z.number().int(),
+        locked: z.number().int(),
+    }),
+});
+
+const balanceSchema = z.object({
+    total: z.number().int(),
+    locked: z.number().int(),
+})
+
+export const getBalanceReplySchema = z.object({
+    type: z.literal("get_balance"),
+    reqId: z.uuid(),
+    data: z.record(assetSchema, balanceSchema)
+});
+
+export const errorReplySchema = z.object({
+    type: z.literal("error"),
+    reqId: z.uuid(),
+    error: z.string(),
+});
+
+export const engineReplySchema = z.discriminatedUnion("type", [
+    createOrderReplySchema,
+    addBalanceReplySchema,
+    getBalanceReplySchema,
+    errorReplySchema,
 ]);
 
+export const incomingOrderSchema = createOrderRequestSchema.omit({ 
+    type: true, 
+    reqId: true 
+}).extend({ orderId: z.string() });
+
+export type IncomingOrder = z.infer<typeof incomingOrderSchema>;
+
 export type EngineRequest = z.infer<typeof engineRequestSchema>;
+export type CreateOrderReply = z.infer<typeof createOrderReplySchema>;
+export type AddBalanceReply = z.infer<typeof addBalanceReplySchema>;
+export type GetBalanceReply = z.infer<typeof getBalanceReplySchema>
+export type ErrorReply = z.infer<typeof errorReplySchema>;
 export type EngineReply = z.infer<typeof engineReplySchema>;
 
 export const createOrderBodySchema = createOrderRequestSchema.omit({
+    type: true,
+    reqId: true,
+    userId: true
+});
+
+export const addBalanceBodySchema = addBalanceRequestSchema.omit({
     type: true,
     reqId: true,
     userId: true

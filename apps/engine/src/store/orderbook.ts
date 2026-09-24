@@ -1,4 +1,4 @@
-import type { Market, OrderSide, OrderStatus, OrderType } from "@repo/common";
+import type { Market, OrderSide, OrderStatus, OrderType, Fill, IncomingOrder } from "@repo/common";
 
 type RestingOrder = {
     orderId: string;
@@ -41,23 +41,6 @@ type Book = {
   }
 */
 
-type IncomingOrder = {
-    orderId: string;
-    userId: string;
-    market: Market;
-    side: OrderSide;
-    orderType: OrderType;
-    price: number;
-    qty: number;
-}
-
-type Fill = {
-    price: number;
-    qty: number;
-    makerOrderId: string;
-    takerOrderId: string;
-}
-
 type MatchResult = {
     filledQty: number;
     remainingQty: number;
@@ -93,10 +76,14 @@ export class OrderBook {
                 const tradeQty = Math.min(remainingQty, restingOrder.qty);
     
                 fills.push({
+                    market: order.market,
                     price: best.price,
                     qty: tradeQty,
+                    takerSide: order.side,
                     makerOrderId: restingOrder.orderId,
-                    takerOrderId: order.orderId
+                    makerUserId: restingOrder.userId,
+                    takerOrderId: order.orderId,
+                    takerUserId: order.userId
                 });
 
                 restingOrder.qty -= tradeQty;

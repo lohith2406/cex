@@ -30,7 +30,9 @@ test("exact match empties the book", () => {
     expect(result.remainingQty).toBe(0);
     expect(result.status).toBe("FILLED");
     expect(result.fills).toEqual([
-        { price: 101, qty: 5, makerOrderId: "maker", takerOrderId: "taker" },
+        { market: "BTC", price: 101, qty: 5, takerSide: "BUY",
+          makerOrderId: "maker", makerUserId: "u1",
+          takerOrderId: "taker", takerUserId: "u1" },
     ]);
 
     const depth = ob.depth("BTC");
@@ -85,8 +87,12 @@ test("sweeps multiple price levels, cheapest first", () => {
     expect(result.filledQty).toBe(8);
     expect(result.status).toBe("FILLED");
     expect(result.fills).toEqual([
-        { price: 101, qty: 5, makerOrderId: "cheap", takerOrderId: "taker" },
-        { price: 102, qty: 3, makerOrderId: "expensive", takerOrderId: "taker" },
+        { market: "BTC", price: 101, qty: 5, takerSide: "BUY",
+          makerOrderId: "cheap", makerUserId: "u1",
+          takerOrderId: "taker", takerUserId: "u1" },
+        { market: "BTC", price: 102, qty: 3, takerSide: "BUY",
+          makerOrderId: "expensive", makerUserId: "u1",
+          takerOrderId: "taker", takerUserId: "u1" },
     ]);
 
     // 101 fully consumed and removed, 102 has 2 left
@@ -111,8 +117,12 @@ test("time priority: the older maker fills first", () => {
     const result = ob.placeOrder(buy(101, 6, { orderId: "taker" }));
 
     expect(result.fills).toEqual([
-        { price: 101, qty: 5, makerOrderId: "alice", takerOrderId: "taker" },
-        { price: 101, qty: 1, makerOrderId: "bob", takerOrderId: "taker" },
+        { market: "BTC", price: 101, qty: 5, takerSide: "BUY",
+          makerOrderId: "alice", makerUserId: "alice",
+          takerOrderId: "taker", takerUserId: "u1" },
+        { market: "BTC", price: 101, qty: 1, takerSide: "BUY",
+          makerOrderId: "bob", makerUserId: "bob",
+          takerOrderId: "taker", takerUserId: "u1" },
     ]);
     // bob has 4 left at the same level
     expect(ob.depth("BTC").asks).toEqual([{ price: 101, qty: 4 }]);
@@ -140,7 +150,9 @@ test("sell side crosses too", () => {
     expect(result.status).toBe("FILLED");
     // sold into a bid of 100 despite asking 98
     expect(result.fills).toEqual([
-        { price: 100, qty: 5, makerOrderId: "maker", takerOrderId: "taker" },
+        { market: "BTC", price: 100, qty: 5, takerSide: "SELL",
+          makerOrderId: "maker", makerUserId: "u1",
+          takerOrderId: "taker", takerUserId: "u1" },
     ]);
 });
 

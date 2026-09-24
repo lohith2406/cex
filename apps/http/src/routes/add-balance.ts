@@ -1,21 +1,21 @@
-import { createOrderBodySchema, zodErrorMessage, type CreateOrderRequest, type EngineRequest } from "@repo/common";
+import { addBalanceBodySchema, zodErrorMessage, type AddBalanceReply, type AddBalanceRequest, type EngineRequest, type ErrorReply } from "@repo/common";
 import type { Request, Response } from "express";
 import { sendToEngine } from "../engine-client";
 
-export async function createOrder(req: Request, res: Response) {
-    const parsed = createOrderBodySchema.safeParse(req.body);
+export async function addBalance(req: Request, res: Response) {
+    const parsed = addBalanceBodySchema.safeParse(req.body);
 
     if (!parsed.success) {
-        res.status(411).json({ 
+        res.status(411).json({
             message: "Invalid inputs",
             error: zodErrorMessage(parsed.error)
         });
         return;
     }
 
-    const engineRequest: CreateOrderRequest = {
+    const engineRequest: AddBalanceRequest = {
         ...parsed.data,
-        type: "create_order",
+        type: "add_balance",
         reqId: crypto.randomUUID(),
         userId: req.userId
     };
@@ -29,11 +29,11 @@ export async function createOrder(req: Request, res: Response) {
 
     if (engineResponse.type === "error") {
         res.status(400).json({ error: engineResponse.error });
-        return;
+        return
     }
 
-    res.status(201).json({ 
-        message: "Order placed",
-        data: engineResponse.data 
-    });
+    res.status(200).json({
+        message: "Balance updated",
+        data: engineResponse.data
+    })
 }
