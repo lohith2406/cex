@@ -26,9 +26,9 @@ test("exact match empties the book", () => {
 
     const result = ob.placeOrder(buy(101, 5, { orderId: "taker" }));
 
-    expect(result.filledQty).toBe(5);
-    expect(result.remainingQty).toBe(0);
-    expect(result.status).toBe("FILLED");
+    expect(result.order.filledQty).toBe(5);
+    expect(result.order.qty - result.order.filledQty).toBe(0);
+    expect(result.order.status).toBe("FILLED");
     expect(result.fills).toEqual([
         { market: "BTC", price: 101, qty: 5, takerSide: "BUY",
           makerOrderId: "maker", makerUserId: "u1",
@@ -55,9 +55,9 @@ test("taker bigger than the book: fills what it can, rests the rest", () => {
 
     const result = ob.placeOrder(buy(101, 10));
 
-    expect(result.filledQty).toBe(3);
-    expect(result.remainingQty).toBe(7);
-    expect(result.status).toBe("PARTIALLY_FILLED");
+    expect(result.order.filledQty).toBe(3);
+    expect(result.order.qty - result.order.filledQty).toBe(7);
+    expect(result.order.status).toBe("PARTIALLY_FILLED");
 
     const depth = ob.depth("BTC");
     expect(depth.asks).toEqual([]);
@@ -71,8 +71,8 @@ test("maker bigger than the taker: maker keeps the remainder", () => {
 
     const result = ob.placeOrder(buy(101, 3));
 
-    expect(result.filledQty).toBe(3);
-    expect(result.status).toBe("FILLED");
+    expect(result.order.filledQty).toBe(3);
+    expect(result.order.status).toBe("FILLED");
     expect(ob.depth("BTC").asks).toEqual([{ price: 101, qty: 7 }]);
     expect(ob.depth("BTC").bids).toEqual([]);
 });
@@ -84,8 +84,8 @@ test("sweeps multiple price levels, cheapest first", () => {
 
     const result = ob.placeOrder(buy(102, 8, { orderId: "taker" }));
 
-    expect(result.filledQty).toBe(8);
-    expect(result.status).toBe("FILLED");
+    expect(result.order.filledQty).toBe(8);
+    expect(result.order.status).toBe("FILLED");
     expect(result.fills).toEqual([
         { market: "BTC", price: 101, qty: 5, takerSide: "BUY",
           makerOrderId: "cheap", makerUserId: "u1",
@@ -134,8 +134,8 @@ test("does not cross: bid below the best ask just rests", () => {
 
     const result = ob.placeOrder(buy(99, 5));
 
-    expect(result.filledQty).toBe(0);
-    expect(result.status).toBe("OPEN");
+    expect(result.order.filledQty).toBe(0);
+    expect(result.order.status).toBe("OPEN");
     expect(result.fills).toEqual([]);
     expect(ob.depth("BTC").asks).toEqual([{ price: 101, qty: 5 }]);
     expect(ob.depth("BTC").bids).toEqual([{ price: 99, qty: 5 }]);
@@ -147,7 +147,7 @@ test("sell side crosses too", () => {
 
     const result = ob.placeOrder(sell(98, 5, { orderId: "taker" }));
 
-    expect(result.status).toBe("FILLED");
+    expect(result.order.status).toBe("FILLED");
     // sold into a bid of 100 despite asking 98
     expect(result.fills).toEqual([
         { market: "BTC", price: 100, qty: 5, takerSide: "SELL",
@@ -161,8 +161,8 @@ test("market order against an empty book expires", () => {
 
     const result = ob.placeOrder(buy(0, 5, { orderType: "MARKET" }));
 
-    expect(result.filledQty).toBe(0);
-    expect(result.status).toBe("EXPIRED");
+    expect(result.order.filledQty).toBe(0);
+    expect(result.order.status).toBe("EXPIRED");
     expect(ob.depth("BTC").bids).toEqual([]);
 });
 
@@ -172,9 +172,9 @@ test("market order fills what it can and expires the rest", () => {
 
     const result = ob.placeOrder(buy(999, 10, { orderType: "MARKET" }));
 
-    expect(result.filledQty).toBe(3);
-    expect(result.remainingQty).toBe(7);
-    expect(result.status).toBe("EXPIRED");
+    expect(result.order.filledQty).toBe(3);
+    expect(result.order.qty - result.order.filledQty).toBe(7);
+    expect(result.order.status).toBe("EXPIRED");
     // the unfilled 7 must NOT rest
     expect(ob.depth("BTC").bids).toEqual([]);
 });
@@ -208,6 +208,6 @@ test("markets do not match against each other", () => {
     const ethBuy = { ...buy(101, 5), market: "ETH" as const };
     const result = ob.placeOrder(ethBuy);
 
-    expect(result.filledQty).toBe(0);
+    expect(result.order.filledQty).toBe(0);
     expect(ob.depth("BTC").asks).toEqual([{ price: 101, qty: 5 }]);
 });

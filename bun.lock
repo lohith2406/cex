@@ -12,6 +12,10 @@
     },
     "apps/db-worker": {
       "name": "db-worker",
+      "dependencies": {
+        "@repo/common": "workspace:*",
+        "@repo/db": "workspace:*",
+      },
       "devDependencies": {
         "@types/bun": "latest",
       },

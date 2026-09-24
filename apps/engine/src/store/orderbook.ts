@@ -3,7 +3,6 @@ import type { Market, OrderSide, OrderStatus, OrderType, Fill, IncomingOrder } f
 type RestingOrder = {
     orderId: string;
     userId: string;
-    qty: number;
 }
 
 type Level = {
@@ -22,40 +21,55 @@ type Book = {
 "BTC": {
     bids: [
       { price: 100, totalQty: 7,  orders: [
-          { orderId: "o4", userId: "eve",  qty: 7,  createdAt: 1703 }
+          { orderId: "o4", userId: "eve" }
         ]},
       { price: 99,  totalQty: 4,  orders: [
-          { orderId: "o5", userId: "dave", qty: 4,  createdAt: 1704 }
+          { orderId: "o5", userId: "dave" }
         ]}
     ],
     asks: [
       { price: 101, totalQty: 8,  orders: [
-          { orderId: "o1", userId: "alice", qty: 5, createdAt: 1701 },
-          { orderId: "o2", userId: "bob",   qty: 3, createdAt: 1702 }
+          { orderId: "o1", userId: "alice" },
+          { orderId: "o2", userId: "bob" }
         ]},
       { price: 102, totalQty: 10, orders: [
-          { orderId: "o3", userId: "carol", qty: 10, createdAt: 1705 }
+          { orderId: "o3", userId: "carol" }
         ]}
     ],
     lastTradedPrice: 100
   }
 */
 
-type MatchResult = {
+type Order = IncomingOrder & {
     filledQty: number;
-    remainingQty: number;
     status: OrderStatus;
+}
+
+type MatchResult = {
+    order: Order;
+    makerOrders: Order[];
     fills: Fill[];
 }
 
+
 export class OrderBook {
     private books = new Map<Market, Book>();
+    private orders = new Map<string, Order>();     // orderId: Order
 
     placeOrder(order: IncomingOrder): MatchResult {
         const book = this.getOrCreateBook(order.market);
         const opposite = order.side === "BUY" ? book.asks : book.bids;
         let remainingQty = order.qty;
         const fills: Fill[] = [];
+
+        const takerOrder: Order = {
+            ...order,
+            filledQty: 0,
+            status: "OPEN"
+        };
+
+        this.orders.set(order.orderId, takerOrder);
+        const makerOrders: Order[] = [];
 
         while (remainingQty > 0 && opposite.length > 0) {
             const best = opposite[0];
@@ -73,7 +87,13 @@ export class OrderBook {
                     break;
                 }
 
-                const tradeQty = Math.min(remainingQty, restingOrder.qty);
+                const makerOrder = this.orders.get(restingOrder.orderId);
+                if (!makerOrder) {
+                    throw new Error(`orderbook: resting entry ${restingOrder.orderId} has no order record`);
+                }
+                const makerRemainingQty = makerOrder.qty - makerOrder.filledQty
+
+                const tradeQty = Math.min(remainingQty, makerRemainingQty);
     
                 fills.push({
                     market: order.market,
@@ -86,14 +106,19 @@ export class OrderBook {
                     takerUserId: order.userId
                 });
 
-                restingOrder.qty -= tradeQty;
+                makerOrder.filledQty += tradeQty;
+                makerOrder.status = makerOrder.filledQty === makerOrder.qty ? "FILLED" : "PARTIALLY_FILLED";
+                makerOrders.push(makerOrder);
+
+                takerOrder.filledQty += tradeQty;
                 best.totalQty -= tradeQty;
                 remainingQty -= tradeQty;
                 book.lastTradedPrice = best.price;
 
-                if (restingOrder.qty === 0) {
+                if (makerOrder.filledQty === makerOrder.qty) {
                     best.orders.shift();
                 }
+
             }
 
             if (best.orders.length === 0) {
@@ -116,10 +141,12 @@ export class OrderBook {
         } else if (remainingQty > 0) {
             status = "PARTIALLY_FILLED"
         }
+        
+        takerOrder.status = status;
+
         return {
-            filledQty: order.qty - remainingQty,
-            remainingQty,
-            status,
+            order: takerOrder,
+            makerOrders,
             fills
         };
     }
@@ -143,13 +170,12 @@ export class OrderBook {
         const restingOrder: RestingOrder = {
             orderId: order.orderId,
             userId: order.userId,
-            qty: remainingQty,
         }
         const existing = levels.find(level => level.price === order.price);
 
         if (existing) {
             existing.orders.push(restingOrder);
-            existing.totalQty += restingOrder.qty;
+            existing.totalQty += remainingQty;
             return;
         }
 

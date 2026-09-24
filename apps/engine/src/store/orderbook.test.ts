@@ -84,10 +84,9 @@ test("a resting order reports nothing filled", () => {
     const ob = new OrderBook();
     const result = ob.placeOrder(sell(101, 5));
 
-    expect(result).toEqual({
-        filledQty: 0,
-        remainingQty: 5,
-        status: "OPEN",
-        fills: [],
-    });
+    expect(result.order.filledQty).toBe(0);
+    expect(result.order.qty - result.order.filledQty).toBe(5);
+    expect(result.order.status).toBe("OPEN");
+    expect(result.fills).toEqual([]);
+    expect(result.makerOrders).toEqual([]);
 });

@@ -41,8 +41,10 @@ async function engineRequestListener() {
                 balances.settle(fill, order.price);
             }
 
-            if (result.remainingQty > 0 && order.orderType === "MARKET") {
-                balances.unlock(order, result.remainingQty);
+            const remainingQty = result.order.qty - result.order.filledQty
+
+            if (remainingQty > 0 && order.orderType === "MARKET") {
+                balances.unlock(order, remainingQty);
             }
 
             const reply: CreateOrderReply = {
@@ -50,9 +52,9 @@ async function engineRequestListener() {
                 reqId: parsed.data.reqId, 
                 data: {
                     orderId,
-                    filledQty: result.filledQty,
-                    remainingQty: result.remainingQty,
-                    status: result.status,
+                    filledQty: result.order.filledQty,
+                    remainingQty,
+                    status: result.order.status,
                     fills: result.fills
                 } 
             };
