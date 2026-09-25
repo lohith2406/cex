@@ -45,17 +45,17 @@ model Order {
   makerFills Fill[] @relation("makerOrder")
   takerFills Fill[] @relation("takerOrder")
 
-  createdAt DateTime @default(now())
+  createdAt DateTime
   updatedAt DateTime @updatedAt
 }
 
 model Fill {
   id String @id @default(uuid())
 
-  qty    Int
-  side   OrderSide
-  price  Int
-  market Market
+  qty       Int
+  takerSide OrderSide
+  price     Int
+  market    Market
 
   makerId String
   maker   User   @relation("maker", references: [id], fields: [makerId])
@@ -120,4 +120,11 @@ enum OrderStatus {
 enum PositionType {
   LONG
   SHORT
+}
+
+enum Asset {
+  USD
+  BTC
+  ETH
+  SOL
 }

@@ -1,5 +1,5 @@
 import { ENGINE_REPLIES, ENGINE_REQUESTS, engineReplySchema, zodErrorMessage, type EngineReply, type EngineRequest } from "@repo/common";
-import { engineRequestQueue, engineReplyQueue } from "./redis";
+import { reader, writer } from "./redis";
 
 let pendingEngineReplies: Map<string, (reply: EngineReply) => void> = new Map();
 
@@ -15,14 +15,14 @@ export async function sendToEngine(request: EngineRequest) {
         })
     })
 
-    await engineRequestQueue.lPush(ENGINE_REQUESTS, JSON.stringify(request));
+    await writer.lPush(ENGINE_REQUESTS, JSON.stringify(request));
 
     return promise;
 };
 
-async function EngineReplyListener() {
+async function readerListener() {
     for(;;) {
-        const reply = await engineReplyQueue.brPop(ENGINE_REPLIES, 0);
+        const reply = await reader.brPop(ENGINE_REPLIES, 0);
         
         if(!reply) {
             continue;
@@ -47,4 +47,4 @@ async function EngineReplyListener() {
     }
 };
 
-EngineReplyListener();
+readerListener();

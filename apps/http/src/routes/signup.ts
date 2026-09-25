@@ -1,4 +1,4 @@
-import { prisma } from "@repo/db";
+import { prisma } from "../db";
 import { authSchema, zodErrorMessage } from "@repo/common";
 import type { Request, Response } from "express";
 import bcrypt from "bcrypt";

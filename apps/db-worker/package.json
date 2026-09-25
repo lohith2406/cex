@@ -11,6 +11,10 @@
   },
   "dependencies": {
     "@repo/common": "workspace:*",
-    "@repo/db": "workspace:*"
+    "@repo/db": "workspace:*",
+    "@repo/redis": "workspace:*"
+  },
+  "scripts": {
+    "dev": "bun run --watch src/index.ts"
   }
 }

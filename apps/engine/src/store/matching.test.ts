@@ -30,7 +30,7 @@ test("exact match empties the book", () => {
     expect(result.order.qty - result.order.filledQty).toBe(0);
     expect(result.order.status).toBe("FILLED");
     expect(result.fills).toEqual([
-        { market: "BTC", price: 101, qty: 5, takerSide: "BUY",
+        { id: expect.any(String), market: "BTC", price: 101, qty: 5, takerSide: "BUY",
           makerOrderId: "maker", makerUserId: "u1",
           takerOrderId: "taker", takerUserId: "u1" },
     ]);
@@ -87,10 +87,10 @@ test("sweeps multiple price levels, cheapest first", () => {
     expect(result.order.filledQty).toBe(8);
     expect(result.order.status).toBe("FILLED");
     expect(result.fills).toEqual([
-        { market: "BTC", price: 101, qty: 5, takerSide: "BUY",
+        { id: expect.any(String), market: "BTC", price: 101, qty: 5, takerSide: "BUY",
           makerOrderId: "cheap", makerUserId: "u1",
           takerOrderId: "taker", takerUserId: "u1" },
-        { market: "BTC", price: 102, qty: 3, takerSide: "BUY",
+        { id: expect.any(String), market: "BTC", price: 102, qty: 3, takerSide: "BUY",
           makerOrderId: "expensive", makerUserId: "u1",
           takerOrderId: "taker", takerUserId: "u1" },
     ]);
@@ -117,10 +117,10 @@ test("time priority: the older maker fills first", () => {
     const result = ob.placeOrder(buy(101, 6, { orderId: "taker" }));
 
     expect(result.fills).toEqual([
-        { market: "BTC", price: 101, qty: 5, takerSide: "BUY",
+        { id: expect.any(String), market: "BTC", price: 101, qty: 5, takerSide: "BUY",
           makerOrderId: "alice", makerUserId: "alice",
           takerOrderId: "taker", takerUserId: "u1" },
-        { market: "BTC", price: 101, qty: 1, takerSide: "BUY",
+        { id: expect.any(String), market: "BTC", price: 101, qty: 1, takerSide: "BUY",
           makerOrderId: "bob", makerUserId: "bob",
           takerOrderId: "taker", takerUserId: "u1" },
     ]);
@@ -150,7 +150,7 @@ test("sell side crosses too", () => {
     expect(result.order.status).toBe("FILLED");
     // sold into a bid of 100 despite asking 98
     expect(result.fills).toEqual([
-        { market: "BTC", price: 100, qty: 5, takerSide: "SELL",
+        { id: expect.any(String), market: "BTC", price: 100, qty: 5, takerSide: "SELL",
           makerOrderId: "maker", makerUserId: "u1",
           takerOrderId: "taker", takerUserId: "u1" },
     ]);

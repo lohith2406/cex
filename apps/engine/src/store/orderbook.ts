@@ -1,4 +1,4 @@
-import type { Market, OrderSide, OrderStatus, OrderType, Fill, IncomingOrder } from "@repo/common";
+import type { Market, OrderSide, OrderStatus, OrderType, Fill, IncomingOrder, Order } from "@repo/common";
 
 type RestingOrder = {
     orderId: string;
@@ -40,11 +40,6 @@ type Book = {
   }
 */
 
-type Order = IncomingOrder & {
-    filledQty: number;
-    status: OrderStatus;
-}
-
 type MatchResult = {
     order: Order;
     makerOrders: Order[];
@@ -65,7 +60,8 @@ export class OrderBook {
         const takerOrder: Order = {
             ...order,
             filledQty: 0,
-            status: "OPEN"
+            status: "OPEN",
+            createdAt: Date.now()
         };
 
         this.orders.set(order.orderId, takerOrder);
@@ -96,6 +92,7 @@ export class OrderBook {
                 const tradeQty = Math.min(remainingQty, makerRemainingQty);
     
                 fills.push({
+                    id: crypto.randomUUID(),
                     market: order.market,
                     price: best.price,
                     qty: tradeQty,

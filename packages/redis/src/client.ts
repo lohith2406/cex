@@ -1,6 +1,6 @@
 import { createClient } from "redis";
 
-export async function makeClient(url: string) {
+export async function createRedisClient(url: string) {
     const client = createClient({
         url
       });

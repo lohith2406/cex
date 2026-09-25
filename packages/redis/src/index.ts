@@ -1,1 +1,1 @@
-export { makeClient } from "./client";
+export { createRedisClient } from "./client";

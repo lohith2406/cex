@@ -1,7 +1,7 @@
 import z from "zod";
 
-export const ENGINE_REQUESTS="engine:requests";
-export const ENGINE_REPLIES="engine:replies";
+export const ENGINE_REQUESTS = "engine:requests";
+export const ENGINE_REPLIES = "engine:replies";
 
 export const marketSchema = z.enum(["BTC", "ETH", "SOL"]);
 export const sideSchema = z.enum(["BUY", "SELL"]);
@@ -50,15 +50,29 @@ export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>;
 export type AddBalanceRequest = z.infer<typeof addBalanceRequestSchema>;
 export type GetBalanceRequest = z.infer<typeof getBalanceRequestSchema>
 
+export const incomingOrderSchema = createOrderRequestSchema.omit({ 
+    type: true, 
+    reqId: true 
+}).extend({ orderId: z.string() });
+
+export const orderSchema = incomingOrderSchema.extend({
+    filledQty: z.number().int(),
+    status: orderStatusSchema,
+    createdAt: z.number().int()
+});
+
+export type Order = z.infer<typeof orderSchema>;
+
 export const fillSchema = z.object({
+    id: z.uuid(),
     market: marketSchema,
     price: z.number().int(),
     qty: z.number().int(),
     takerSide: sideSchema,
-    makerOrderId: z.string(),
-    makerUserId: z.string(),
-    takerOrderId: z.string(),
-    takerUserId: z.string(),
+    makerOrderId: z.uuid(),
+    makerUserId: z.uuid(),
+    takerOrderId: z.uuid(),
+    takerUserId: z.uuid(),
 });
 
 export type Fill = z.infer<typeof fillSchema>;
@@ -108,11 +122,6 @@ export const engineReplySchema = z.discriminatedUnion("type", [
     getBalanceReplySchema,
     errorReplySchema,
 ]);
-
-export const incomingOrderSchema = createOrderRequestSchema.omit({ 
-    type: true, 
-    reqId: true 
-}).extend({ orderId: z.string() });
 
 export type IncomingOrder = z.infer<typeof incomingOrderSchema>;
 
