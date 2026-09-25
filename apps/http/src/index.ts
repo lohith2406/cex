@@ -5,6 +5,7 @@ import { signin } from "./routes/signin";
 import { createOrder } from "./routes/create-order";
 import { addBalance } from "./routes/add-balance";
 import { getBalances } from "./routes/get-balance";
+import { cancelOrder } from "./routes/cancel-order";
 
 const app = express();
 
@@ -28,9 +29,7 @@ app.get("/trades", () => {
     
 });
 
-app.delete("/order/:orderId", auth, () => {
-    
-});
+app.delete("/order/:orderId", auth, cancelOrder);
 
 app.get("/depth/:symbol", () => {
     

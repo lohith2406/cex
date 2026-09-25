@@ -191,6 +191,44 @@ export class OrderBook {
         }
     }
 
+    cancelOrder(orderId: string, userId: string): Order | null {
+        const order = this.orders.get(orderId);
+        if (!order) {
+            return null;
+        }
+
+        if (order.userId !== userId) {
+            return null;
+        }
+
+        if (order.status !== "OPEN" && order.status !== "PARTIALLY_FILLED") {
+            return null;
+        }
+
+        const book = this.getOrCreateBook(order.market);
+        const levels = order.side === "BUY" ? book.bids : book.asks;
+        const level = levels.find(l => l.price === order.price);
+
+        if (!level) {
+            return null;
+        }
+
+        const index = level.orders.findIndex(order => order.orderId === orderId);
+        if (index === -1) {
+            return null;
+        }
+
+        level.orders.splice(index, 1);
+        level.totalQty -= order.qty - order.filledQty;
+
+        if (level.orders.length === 0) {
+            levels.splice(levels.indexOf(level), 1)
+        }
+
+        order.status = "CANCELLED";
+        return order;
+    }
+
     depth(market: Market) {
         const book = this.getOrCreateBook(market);
         const bids = book.bids.map((level) => {

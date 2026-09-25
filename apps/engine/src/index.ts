@@ -1,4 +1,4 @@
-import { ENGINE_EVENTS, ENGINE_REPLIES, ENGINE_REQUESTS, engineRequestSchema, zodErrorMessage, type AddBalanceReply, type CreateOrderReply, type EngineReply, type GetBalanceReply, type OrderResultMessage } from "@repo/common";
+import { ENGINE_EVENTS, ENGINE_REPLIES, ENGINE_REQUESTS, engineRequestSchema, zodErrorMessage, type AddBalanceReply, type CancelOrderReply, type CreateOrderReply, type EngineReply, type GetBalanceReply, type OrderCancelledMessage, type OrderResultMessage } from "@repo/common";
 import { reader, writer } from "./redis";
 import { OrderBook } from "./store/orderbook";
 import { BalanceStore } from "./store/balance";
@@ -100,6 +100,34 @@ async function readerListener() {
             }
 
             await sendToBackend(reply);
+
+        } else if (parsed.data.type === "cancel_order") {
+            const order = orderbook.cancelOrder(parsed.data.orderId, parsed.data.userId);
+
+            if (!order) {
+                await sendToBackend({
+                    type: "error",
+                    reqId: parsed.data.reqId,
+                    error: "Order not found or not cancellable"
+                });
+                continue;
+            }
+
+            balances.unlock(order, order.qty - order.filledQty);
+
+            const reply: CancelOrderReply = {
+                type: "cancel_order",
+                reqId: parsed.data.reqId,
+                data: { order }
+            };
+
+            await sendToBackend(reply);
+
+            const message: OrderCancelledMessage = {
+                type: "order_cancelled",
+                order
+            };
+            await writer.xAdd(ENGINE_EVENTS, "*", { data: JSON.stringify(message) });
         }
     }
 }

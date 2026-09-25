@@ -38,7 +38,7 @@ async function reclaimStranded() {
             await handleMessage(message.message.data);
             await writer.xAck(ENGINE_EVENTS, DB_WORKER_GROUP, message.id);
         }
-        
+
         if (String(request.nextId) === "0-0") { // all stranded requests covered
             break;
         }
@@ -55,55 +55,79 @@ async function handleMessage(message: string) {
         return;
     }
 
-    const { order, makerOrders, fills } = parsed.data;
-    const affectedOrders = [order, ...makerOrders];
-
-    await prisma.$transaction(async (tx) => {
-        for (const affectedOrder of affectedOrders) {
-            await tx.order.upsert({
-                where: {
-                    id: affectedOrder.orderId
-                },
-                update: {
-                    filledQty: affectedOrder.filledQty,
-                    status: affectedOrder.status,
-                },
-                create: {
-                    id: affectedOrder.orderId,
-                    userId: affectedOrder.userId,
-                    market: affectedOrder.market,
-                    price: affectedOrder.price,
-                    qty: affectedOrder.qty,
-                    filledQty: affectedOrder.filledQty,
-                    side: affectedOrder.side,
-                    type: affectedOrder.orderType,
-                    status: affectedOrder.status,
-                    createdAt: new Date(affectedOrder.createdAt)
-                }
-            });
-        }
-
-        for (const fill of fills) {
-            await tx.fill.upsert({
-                where: {
-                    id: fill.id
-                },
-                update: {},
-                create: {
-                    id: fill.id,
-                    qty: fill.qty,
-                    takerSide: fill.takerSide,
-                    price: fill.price,
-                    market: fill.market,
-                    makerId: fill.makerUserId,
-                    takerId: fill.takerUserId,
-                    makerOrderId: fill.makerOrderId,
-                    takerOrderId: fill.takerOrderId
-                }
-            })
-        }
-    });
-
+    if (parsed.data.type === "order_result") {
+        const { order, makerOrders, fills } = parsed.data;
+        const affectedOrders = [order, ...makerOrders];
+    
+        await prisma.$transaction(async (tx) => {
+            for (const affectedOrder of affectedOrders) {
+                await tx.order.upsert({
+                    where: {
+                        id: affectedOrder.orderId
+                    },
+                    update: {
+                        filledQty: affectedOrder.filledQty,
+                        status: affectedOrder.status,
+                    },
+                    create: {
+                        id: affectedOrder.orderId,
+                        userId: affectedOrder.userId,
+                        market: affectedOrder.market,
+                        price: affectedOrder.price,
+                        qty: affectedOrder.qty,
+                        filledQty: affectedOrder.filledQty,
+                        side: affectedOrder.side,
+                        type: affectedOrder.orderType,
+                        status: affectedOrder.status,
+                        createdAt: new Date(affectedOrder.createdAt)
+                    }
+                });
+            }
+    
+            for (const fill of fills) {
+                await tx.fill.upsert({
+                    where: {
+                        id: fill.id
+                    },
+                    update: {},
+                    create: {
+                        id: fill.id,
+                        qty: fill.qty,
+                        takerSide: fill.takerSide,
+                        price: fill.price,
+                        market: fill.market,
+                        makerId: fill.makerUserId,
+                        takerId: fill.takerUserId,
+                        makerOrderId: fill.makerOrderId,
+                        takerOrderId: fill.takerOrderId
+                    }
+                })
+            }
+        });
+    } else if (parsed.data.type === "order_cancelled") {
+        const { order } = parsed.data;
+        await prisma.order.upsert({
+            where: {
+                id: order.orderId
+            },
+            update: {
+                filledQty: order.filledQty,
+                status: order.status
+            },
+            create: {
+                id: order.orderId,
+                userId: order.userId,
+                market: order.market,
+                price: order.price,
+                qty: order.qty,
+                filledQty: order.filledQty,
+                side: order.side,
+                type: order.orderType,
+                status: order.status,
+                createdAt: new Date(order.createdAt)
+            }
+        })
+    }
 }
 
 export async function readerListener() {

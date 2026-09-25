@@ -40,15 +40,24 @@ export const getBalanceRequestSchema = z.object({
     userId: z.uuid(),
 })
 
+export const cancelOrderRequestSchema = z.object({
+    type: z.literal("cancel_order"),
+    reqId: z.uuid(),
+    userId: z.uuid(),
+    orderId: z.uuid(),
+});
+
 export const engineRequestSchema = z.discriminatedUnion("type", [
     createOrderRequestSchema,
     addBalanceRequestSchema,
-    getBalanceRequestSchema
+    getBalanceRequestSchema,
+    cancelOrderRequestSchema
 ]);
 
 export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>;
 export type AddBalanceRequest = z.infer<typeof addBalanceRequestSchema>;
-export type GetBalanceRequest = z.infer<typeof getBalanceRequestSchema>
+export type GetBalanceRequest = z.infer<typeof getBalanceRequestSchema>;
+export type CancelOrderRequest = z.infer<typeof cancelOrderRequestSchema>;
 
 export const incomingOrderSchema = createOrderRequestSchema.omit({ 
     type: true, 
@@ -110,6 +119,14 @@ export const getBalanceReplySchema = z.object({
     data: z.record(assetSchema, balanceSchema)
 });
 
+export const cancelOrderReplySchema = z.object({
+    type: z.literal("cancel_order"),
+    reqId: z.uuid(),
+    data: z.object({ 
+        order: orderSchema 
+    }),
+});
+
 export const errorReplySchema = z.object({
     type: z.literal("error"),
     reqId: z.uuid(),
@@ -120,6 +137,7 @@ export const engineReplySchema = z.discriminatedUnion("type", [
     createOrderReplySchema,
     addBalanceReplySchema,
     getBalanceReplySchema,
+    cancelOrderReplySchema,
     errorReplySchema,
 ]);
 
@@ -128,7 +146,8 @@ export type IncomingOrder = z.infer<typeof incomingOrderSchema>;
 export type EngineRequest = z.infer<typeof engineRequestSchema>;
 export type CreateOrderReply = z.infer<typeof createOrderReplySchema>;
 export type AddBalanceReply = z.infer<typeof addBalanceReplySchema>;
-export type GetBalanceReply = z.infer<typeof getBalanceReplySchema>
+export type GetBalanceReply = z.infer<typeof getBalanceReplySchema>;
+export type CancelOrderReply = z.infer<typeof cancelOrderReplySchema>;
 export type ErrorReply = z.infer<typeof errorReplySchema>;
 export type EngineReply = z.infer<typeof engineReplySchema>;
 
@@ -142,4 +161,8 @@ export const addBalanceBodySchema = addBalanceRequestSchema.omit({
     type: true,
     reqId: true,
     userId: true
+});
+
+export const cancelOrderParamsSchema = cancelOrderRequestSchema.pick({
+    orderId: true
 });
