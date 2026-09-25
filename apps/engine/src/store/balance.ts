@@ -19,6 +19,10 @@ function emptyUserBalances(): Record<Asset, Balance> {
     };
 }
 
+export type BalanceSnapshot = {
+    balances: [string, UserBalances][];
+}
+
 export class BalanceStore {
     private balances = new Map<string, UserBalances>();
 
@@ -88,5 +92,15 @@ export class BalanceStore {
             maker[QUOTE].total -= quoteAmount;
             maker[market].total += fill.qty;
         }
+    }
+
+    saveSnapshot(): BalanceSnapshot {
+        return {
+            balances: [...this.balances]
+        };
+    }
+
+    loadSnapshot(snapshot: BalanceSnapshot) {
+        this.balances = new Map(snapshot.balances);
     }
 }

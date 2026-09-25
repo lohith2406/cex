@@ -28,7 +28,7 @@ export async function createOrder(req: Request, res: Response) {
     }
 
     if (engineResponse.type === "error") {
-        res.status(400).json({ error: engineResponse.error });
+        res.status(404).json({ error: engineResponse.error });
         return;
     }
 

@@ -1,10 +1,28 @@
-import { ENGINE_EVENTS, ENGINE_REPLIES, ENGINE_REQUESTS, engineRequestSchema, zodErrorMessage, type AddBalanceReply, type CancelOrderReply, type CreateOrderReply, type EngineReply, type GetBalanceReply, type OrderCancelledMessage, type OrderResultMessage } from "@repo/common";
+import { ENGINE_EVENTS, ENGINE_REPLIES, ENGINE_REQUESTS, engineRequestSchema, zodErrorMessage, type AddBalanceReply, type CancelOrderReply, type CreateOrderReply, type EngineReply, type GetBalanceReply, type GetDepthReply, type OrderCancelledMessage, type OrderResultMessage } from "@repo/common";
 import { reader, writer } from "./redis";
 import { OrderBook } from "./store/orderbook";
 import { BalanceStore } from "./store/balance";
+import { load, save, SNAPSHOT_PATH } from "./snapshot";
 
 const orderbook = new OrderBook();
 const balances = new BalanceStore();
+
+const snapshot = await load(SNAPSHOT_PATH);
+if (snapshot) {
+    orderbook.loadSnapshot(snapshot.orderbook);
+    balances.loadSnapshot(snapshot.balances);
+}
+
+setInterval(async () => {
+    try {
+        await save(SNAPSHOT_PATH, {
+            orderbook: orderbook.saveSnapshot(),
+            balances: balances.saveSnapshot()
+        });
+    } catch (err) {
+        console.error("snapshot failed", err);
+    }
+}, 5000)
 
 async function readerListener() {
     for(;;) {
@@ -128,6 +146,14 @@ async function readerListener() {
                 order
             };
             await writer.xAdd(ENGINE_EVENTS, "*", { data: JSON.stringify(message) });
+        } else if (parsed.data.type === "get_depth") {
+            const reply: GetDepthReply = {
+                type: "get_depth",
+                reqId: parsed.data.reqId,
+                data: orderbook.depth(parsed.data.market)
+            }
+
+            await sendToBackend(reply);
         }
     }
 }

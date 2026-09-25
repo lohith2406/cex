@@ -18,9 +18,12 @@ export async function getBalances(req: Request, res: Response) {
     }
 
     if (engineResponse.type === "error") {
-        res.status(400).json({ error: engineResponse.error });
+        res.status(404).json({ error: engineResponse.error });
         return
     }
 
-    res.status(200).json({ data: engineResponse.data });
+    res.status(200).json({ 
+        message: "Balance fetched",
+        data: engineResponse.data 
+    });
 }

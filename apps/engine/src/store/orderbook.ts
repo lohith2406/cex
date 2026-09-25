@@ -46,6 +46,11 @@ type MatchResult = {
     fills: Fill[];
 }
 
+export type OrderBookSnapshot = {
+    books: [Market, Book][];
+    orders: [string, Order][];
+}
+
 
 export class OrderBook {
     private books = new Map<Market, Book>();
@@ -247,4 +252,16 @@ export class OrderBook {
 
         return { bids, asks, lastTradedPrice: book.lastTradedPrice };
     }
+
+    saveSnapshot(): OrderBookSnapshot {
+        return {
+            books: [...this.books],
+            orders: [...this.orders]
+        };
+    };
+
+    loadSnapshot(snapshot: OrderBookSnapshot) {
+        this.books = new Map(snapshot.books);
+        this.orders = new Map(snapshot.orders);
+    };
 }

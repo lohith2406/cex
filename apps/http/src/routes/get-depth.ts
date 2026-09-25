@@ -1,9 +1,9 @@
-import { orderIdParamsSchema, zodErrorMessage, type CancelOrderRequest } from "@repo/common";
+import { marketParamsSchema, zodErrorMessage, type GetDepthRequest } from "@repo/common";
 import type { Request, Response } from "express";
 import { sendToEngine } from "../engine-client";
 
-export async function cancelOrder(req: Request, res: Response) {
-    const parsed = orderIdParamsSchema.safeParse(req.params);
+export async function getDepth(req: Request, res: Response) {
+    const parsed = marketParamsSchema.safeParse(req.params);
 
     if (!parsed.success) {
         res.status(411).json({
@@ -13,11 +13,10 @@ export async function cancelOrder(req: Request, res: Response) {
         return;
     }
 
-    const engineRequest: CancelOrderRequest = {
-        type: "cancel_order",
+    const engineRequest: GetDepthRequest = {
+        type: "get_depth",
         reqId: crypto.randomUUID(),
-        userId: req.userId,
-        orderId: parsed.data.orderId
+        market: parsed.data.market
     };
 
     const engineResponse = await sendToEngine(engineRequest);
@@ -25,15 +24,15 @@ export async function cancelOrder(req: Request, res: Response) {
     if (!engineResponse) {
         res.status(504).json({ message: "Request timed out" });
         return;
-    }
+    };
 
     if (engineResponse.type === "error") {
         res.status(404).json({ message: "Something went wrong" });
         return;
     }
 
-    res.status(200).json({
-        message: "Order cancelled",
-        data: engineResponse.data
+    res.status(200).json({ 
+        message: "Depth fetched", 
+        data: engineResponse.data 
     });
 }

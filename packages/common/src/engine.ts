@@ -1,4 +1,4 @@
-import z from "zod";
+import z, { symbol } from "zod";
 
 export const ENGINE_REQUESTS = "engine:requests";
 export const ENGINE_REPLIES = "engine:replies";
@@ -47,17 +47,25 @@ export const cancelOrderRequestSchema = z.object({
     orderId: z.uuid(),
 });
 
+export const getDepthRequestSchema = z.object({
+    type: z.literal("get_depth"),
+    reqId: z.uuid(),
+    market: marketSchema,
+});
+
 export const engineRequestSchema = z.discriminatedUnion("type", [
     createOrderRequestSchema,
     addBalanceRequestSchema,
     getBalanceRequestSchema,
-    cancelOrderRequestSchema
+    cancelOrderRequestSchema,
+    getDepthRequestSchema
 ]);
 
 export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>;
 export type AddBalanceRequest = z.infer<typeof addBalanceRequestSchema>;
 export type GetBalanceRequest = z.infer<typeof getBalanceRequestSchema>;
 export type CancelOrderRequest = z.infer<typeof cancelOrderRequestSchema>;
+export type GetDepthRequest = z.infer<typeof getDepthRequestSchema>;
 
 export const incomingOrderSchema = createOrderRequestSchema.omit({ 
     type: true, 
@@ -127,6 +135,22 @@ export const cancelOrderReplySchema = z.object({
     }),
 });
 
+
+const depthLevelSchema = z.object({
+    price: z.number().int(),
+    qty: z.number().int(),
+});
+
+export const getDepthReplySchema = z.object({
+    type: z.literal("get_depth"),
+    reqId: z.uuid(),
+    data: z.object({
+        bids: z.array(depthLevelSchema),
+        asks: z.array(depthLevelSchema),
+        lastTradedPrice: z.number().int(),
+    }),
+});
+
 export const errorReplySchema = z.object({
     type: z.literal("error"),
     reqId: z.uuid(),
@@ -138,6 +162,7 @@ export const engineReplySchema = z.discriminatedUnion("type", [
     addBalanceReplySchema,
     getBalanceReplySchema,
     cancelOrderReplySchema,
+    getDepthReplySchema,
     errorReplySchema,
 ]);
 
@@ -148,6 +173,7 @@ export type CreateOrderReply = z.infer<typeof createOrderReplySchema>;
 export type AddBalanceReply = z.infer<typeof addBalanceReplySchema>;
 export type GetBalanceReply = z.infer<typeof getBalanceReplySchema>;
 export type CancelOrderReply = z.infer<typeof cancelOrderReplySchema>;
+export type GetDepthReply = z.infer<typeof getDepthReplySchema>;
 export type ErrorReply = z.infer<typeof errorReplySchema>;
 export type EngineReply = z.infer<typeof engineReplySchema>;
 
@@ -163,6 +189,6 @@ export const addBalanceBodySchema = addBalanceRequestSchema.omit({
     userId: true
 });
 
-export const cancelOrderParamsSchema = cancelOrderRequestSchema.pick({
-    orderId: true
+export const marketParamsSchema = z.object({
+    market: marketSchema
 });
