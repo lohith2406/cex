@@ -1,159 +1,160 @@
-# Turborepo starter
+# cex
 
-This Turborepo starter is maintained by the Turborepo core team.
+A centralized spot exchange. Orders are matched in memory by a single process; everything
+else in the system exists to feed that process or to fan out what it produces.
 
-## Using this example
+Built with TypeScript on Bun, in a Turborepo monorepo. Redis for transport, Postgres for
+the durable record.
 
-Run the following command:
+## Why it is shaped this way
 
-```sh
-npx create-turbo@latest
+An exchange has one hard constraint: two orders must never match against the same
+liquidity. The usual answers are locks or transactions. This one takes the other route,
+matching runs in a single process with all state in RAM and no `await` anywhere in the
+critical section. The event loop cannot interleave two placements, so atomicity is a
+property of the code's shape rather than something enforced at runtime.
+
+That decision is what forces the rest of the architecture. The engine cannot touch
+Postgres, because an `await` in the matching path would reintroduce the interleaving the
+design exists to prevent. So persistence moves out to a worker, market data moves out to a
+WebSocket service, and the HTTP layer never calls the engine directly.
+
+## Services
+
+| service | what it does |
+| --- | --- |
+| `apps/http` | REST API and auth. Validates, forwards to the engine, waits for a reply. |
+| `apps/engine` | Matching, balances, the order book. Single process, all state in RAM. |
+| `apps/db-worker` | Drains engine events into Postgres. |
+| `apps/ws` | Fans depth and trades out to browser clients. |
+| `packages/common` | Zod schemas shared by every service. The wire protocol lives here. |
+| `packages/db` | Prisma schema and client. |
+| `packages/redis` | Connection factory. |
+| `packages/auth` | JWT middleware. |
+
+## Transport
+
+Three links between services, three different Redis primitives. The choice on each one
+comes from a single question: what breaks if a message is lost?
+
+```
+                 ┌──────────┐
+  client ──HTTP──►   http   │
+         ◄────────└────┬─────┘
+                       │
+       LPUSH engine:requests        list, because exactly one engine must
+       SUBSCRIBE reply:<reqId>      take each order, and the reply has to
+                       │            find the one client that is waiting
+                 ┌─────▼─────┐
+                 │  engine   │
+                 └──┬─────┬──┘
+                    │     │
+  XADD engine:events│     │ PUBLISH depth.<market>
+  stream + consumer │     │ PUBLISH trade.<market>
+  group, because a  │     │ pub/sub, because a dropped
+  lost fill is a    │     │ depth update is replaced by
+  lost trade        │     │ the next one, and the engine
+                    │     │ must not care who is listening
+              ┌─────▼──┐  └──►┌──────┐
+              │db-worker│     │  ws  │
+              └────┬────┘     └───┬──┘
+                   │              │
+               Postgres        browsers
 ```
 
-## What's inside?
+A list gives addressing but no durability. A stream gives durability and replay but no
+per-request routing. Pub/sub gives broadcast but drops anything nobody is listening for.
+None of the three is better than the others; each leg needs a different one.
 
-This Turborepo includes the following packages/apps:
+Delivery on the stream is at-least-once, so the worker's writes are idempotent: Prisma
+upserts keyed by engine-supplied ids. `XAUTOCLAIM` picks up messages stranded by a worker
+that died mid-batch.
 
-### Apps and Packages
+## Engine internals
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `@next/eslint-plugin-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- **Order book** is `Level[]` sorted by price, each level holding orders in arrival order.
+  Price-time priority falls out of that: best price is index 0, oldest order is index 0
+  within the level. Arrays rather than a keyed object, because JavaScript reorders
+  integer-like keys ascending and would silently break bid ordering.
+- **Balances** lock funds at placement and settle on fill. A taker whose order crosses a
+  maker at a better price is refunded the difference.
+- **Snapshots** of the full engine state are written every 5 seconds to a temp file and
+  then `rename`d, which is atomic, so a crash mid-write cannot corrupt the last good
+  snapshot.
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+## Benchmark
 
-### Utilities
+`bun run bench` in `apps/engine`. Measures `placeOrder` alone: no Redis, no Postgres, no
+JSON. Orders are built before the clock starts, a 20k warmup pass runs first, and
+latencies land in a preallocated array.
 
-This Turborepo has some additional tools already setup for you:
+200,000 orders per scenario, M-series Mac, Bun 1.3:
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+| scenario | orders/sec | p50 | p99 | p99.9 |
+| --- | --- | --- | --- | --- |
+| resting order, no match | 821,571 | 1.04 us | 3.33 us | 7.04 us |
+| taker filled by one maker | 1,374,485 | 0.58 us | 2.12 us | 8.29 us |
+| taker sweeping 10 makers | 198,162 | 4.29 us | 19.67 us | 46.88 us |
 
-### Build
+Resting is the slowest of the three because it scans to find its price level; filling only
+consumes from the front. The sweep row is 198k takers/sec, which is ~2M fills/sec.
 
-To build all apps and packages, run the following command:
+## Known limits
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+Listed because they are real, not because they are planned away.
 
-```sh
-cd my-turborepo
-turbo build
+- **Insert is O(price levels),** because resting an order linear-scans the sorted level
+  array. The harness measures it:
+
+  ```
+    1000 levels      2.04 us/insert
+    2000 levels      4.36 us/insert
+    4000 levels      8.79 us/insert
+    8000 levels     17.79 us/insert
+   16000 levels     36.63 us/insert
+  ```
+
+  Bounded in practice by tick size and by liquidity clustering near the mid, but orders at
+  unique prices widen the book and slow everything after them. Fix is a price-keyed map for
+  lookup beside the sorted array for ordering.
+- **Tail latency is garbage collection.** p99.9 sits under 12us while max swings into
+  milliseconds. An `Order` and a `Fill` are allocated per operation; pooling them would cut
+  it.
+- **Orders are never evicted.** Filled and cancelled orders stay in the engine's map
+  forever and are written into every snapshot.
+- **Snapshot without replay.** Restarting rewinds the engine up to 5 seconds, while
+  Postgres still holds the trades from that window. The fix is replaying the stream from
+  the snapshot's position, which needs `MINID` trimming so nothing replay depends on is
+  discarded.
+- **Depth is sent in full, not as deltas, and is not throttled.** Every order publishes the
+  whole book for its market.
+- **No WebSocket heartbeat.** A client whose network drops without closing leaves a socket
+  in the registry.
+
+## WebSocket protocol
+
+```json
+{ "method": "SUBSCRIBE", "params": ["depth.BTC", "trade.BTC"] }
 ```
 
-Without global `turbo`, use your package manager:
+Channel names are the same strings the engine publishes to, so adding a market needs no
+change in the WebSocket service.
+
+## Running it
+
+Needs Redis and Postgres. Each service reads its own `.env`: `REDIS_URL` everywhere,
+`DATABASE_URL` for http and db-worker, plus `JWT_SECRET` for http and `PORT` for ws.
 
 ```sh
-cd my-turborepo
-npx turbo build
-bun exec turbo build
-bun exec turbo build
+bun install
+cd packages/db && bunx prisma migrate dev && bunx prisma generate
+
+bun run dev                          # all services
+bun test                             # engine unit tests
+cd apps/engine && bun run bench      # the numbers above
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## Not built yet
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-bun exec turbo build --filter=docs
-bun exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-bun exec turbo dev
-bun exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-bun exec turbo dev --filter=web
-bun exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-bun exec turbo login
-bun exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-bun exec turbo link
-bun exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+Perpetual futures, the trading frontend (`apps/web` is still the Turborepo starter), and
+klines.
