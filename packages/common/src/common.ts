@@ -1,8 +1,16 @@
 import z from "zod";
-import { fillSchema, marketSchema, orderSchema } from "./engine";
+import { fillSchema, marketSchema, orderSchema, type Market } from "./engine";
 
 export const ENGINE_EVENTS = "engine:events";
-export const DB_WORKER_GROUP = "db-workers"
+export const DB_WORKER_GROUP = "db-workers";
+
+export function depthChannel(market: Market) {
+    return `depth.${market}`;
+};
+
+export function tradeChannel(market: Market) {
+    return `trade.${market}`;
+};
 
 export const orderResultMessageSchema = z.object({
     type: z.literal("order_result"),
@@ -27,4 +35,9 @@ export type DbMessage = z.infer<typeof dbMessageSchema>
 
 export const orderIdParamsSchema = z.object({
     orderId: z.uuid(),
+});
+
+export const wsClientMessageSchema = z.object({
+    method: z.enum(["SUBSCRIBE", "UNSUBSCRIBE"]),
+    params: z.array(z.string()),
 });

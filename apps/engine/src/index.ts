@@ -1,4 +1,4 @@
-import { ENGINE_EVENTS, ENGINE_REPLIES, ENGINE_REQUESTS, engineRequestSchema, zodErrorMessage, type AddBalanceReply, type CancelOrderReply, type CreateOrderReply, type EngineReply, type GetBalanceReply, type GetDepthReply, type OrderCancelledMessage, type OrderResultMessage } from "@repo/common";
+import { depthChannel, ENGINE_EVENTS, ENGINE_REPLIES, ENGINE_REQUESTS, engineRequestSchema, tradeChannel, zodErrorMessage, type AddBalanceReply, type CancelOrderReply, type CreateOrderReply, type EngineReply, type GetBalanceReply, type GetDepthReply, type OrderCancelledMessage, type OrderResultMessage } from "@repo/common";
 import { reader, writer } from "./redis";
 import { OrderBook } from "./store/orderbook";
 import { BalanceStore } from "./store/balance";
@@ -79,6 +79,20 @@ async function readerListener() {
             
             await sendToBackend(reply);
 
+            for (const fill of result.fills) {
+                await writer.publish(tradeChannel(fill.market), 
+                JSON.stringify({
+                    price: fill.price, 
+                    qty: fill.qty, 
+                    takerSide: fill.takerSide, 
+                    ts: Date.now()
+                }));
+            }
+
+            await writer.publish(depthChannel(order.market), 
+                JSON.stringify(orderbook.depth(order.market))
+            );
+
             const dbMessage: OrderResultMessage = {
                 type: "order_result",
                 order: result.order,
@@ -140,6 +154,10 @@ async function readerListener() {
             };
 
             await sendToBackend(reply);
+
+            await writer.publish(depthChannel(order.market),
+                JSON.stringify(orderbook.depth(order.market))
+            );
 
             const message: OrderCancelledMessage = {
                 type: "order_cancelled",

@@ -4,12 +4,18 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/ws": "^8.18.1"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "scripts": {
     "dev": "bun run --watch src/index.ts"
+  },
+  "dependencies": {
+    "@repo/common": "workspace:*",
+    "@repo/redis": "workspace:*",
+    "ws": "^8.22.0"
   }
 }
