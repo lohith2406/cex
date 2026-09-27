@@ -1,12 +1,12 @@
-import { marketParamsSchema, zodErrorMessage, type GetDepthRequest } from "@repo/common";
+import { marketQuerySchema, zodErrorMessage, type GetDepthRequest } from "@repo/common";
 import type { Request, Response } from "express";
 import { sendToEngine } from "../engine-client";
 
 export async function getDepth(req: Request, res: Response) {
-    const parsed = marketParamsSchema.safeParse(req.params);
+    const parsed = marketQuerySchema.safeParse(req.query);
 
     if (!parsed.success) {
-        res.status(411).json({
+        res.status(400).json({
             message: "Invalid inputs",
             error: zodErrorMessage(parsed.error)
         });

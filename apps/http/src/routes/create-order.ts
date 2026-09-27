@@ -6,7 +6,7 @@ export async function createOrder(req: Request, res: Response) {
     const parsed = createOrderBodySchema.safeParse(req.body);
 
     if (!parsed.success) {
-        res.status(411).json({ 
+        res.status(400).json({ 
             message: "Invalid inputs",
             error: zodErrorMessage(parsed.error)
         });

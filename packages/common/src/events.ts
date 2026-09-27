@@ -1,5 +1,5 @@
 import z from "zod";
-import { fillSchema, marketSchema, orderSchema, type Market } from "./engine";
+import { fillSchema, orderSchema, type Market } from "./types";
 
 export const ENGINE_EVENTS = "engine:events";
 export const DB_WORKER_GROUP = "db-workers";
@@ -32,10 +32,6 @@ export const dbMessageSchema = z.discriminatedUnion("type", [
 export type OrderResultMessage = z.infer<typeof orderResultMessageSchema>;
 export type OrderCancelledMessage = z.infer<typeof orderCancelledMessageSchema>;
 export type DbMessage = z.infer<typeof dbMessageSchema>
-
-export const orderIdParamsSchema = z.object({
-    orderId: z.uuid(),
-});
 
 export const wsClientMessageSchema = z.object({
     method: z.enum(["SUBSCRIBE", "UNSUBSCRIBE"]),

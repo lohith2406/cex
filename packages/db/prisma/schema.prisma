@@ -4,8 +4,9 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["typedSql"]
 }
 
 datasource db {
@@ -71,6 +72,8 @@ model Fill {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([market, createdAt])
 }
 
 model Position {

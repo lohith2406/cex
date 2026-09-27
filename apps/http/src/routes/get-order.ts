@@ -6,13 +6,13 @@ export async function getOrder(req: Request, res: Response) {
     const parsed = orderIdParamsSchema.safeParse(req.params);
 
     if (!parsed.success) {
-        res.status(411).json({
+        res.status(400).json({
             message: "Invalid inputs",
             error: zodErrorMessage(parsed.error)
         });
         return;
     }
-    
+
     const order = await prisma.order.findUnique({
         where: {
             id: parsed.data.orderId,

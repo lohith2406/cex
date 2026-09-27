@@ -12,38 +12,37 @@ import { getOrders } from "./routes/get-orders";
 import { getFills } from "./routes/get-fills";
 import { getTrades } from "./routes/get-trades";
 import { getUser } from "./routes/get-user";
+import { getKlines } from "./routes/get-klines";
 
 const app = express();
 
 app.use(express.json());
 
-app.post("/signup", signup);
+app.post("/api/v1/signup", signup);
 
-app.post("/signin", signin);
+app.post("/api/v1/signin", signin);
 
-app.get("/profile", auth, getUser)
+app.get("/api/v1/profile", auth, getUser)
 
-app.post("/order", auth, createOrder);
+app.post("/api/v1/orders", auth, createOrder);
 
-app.get("/order/:orderId", auth, getOrder);
+app.get("/api/v1/orders/:orderId", auth, getOrder);
 
-app.get("/trades/:market", getTrades);
+app.get("/api/v1/trades", getTrades);
 
-app.delete("/order/:orderId", auth, cancelOrder);
+app.delete("/api/v1/orders/:orderId", auth, cancelOrder);
 
-app.get("/depth/:market", getDepth);
+app.get("/api/v1/depth", getDepth);
 
-app.get("/orders", auth, getOrders);
+app.get("/api/v1/orders", auth, getOrders);
 
-app.get("/fills", auth, getFills);
+app.get("/api/v1/fills", auth, getFills);
 
-app.get("/balance/", auth, getBalances);
+app.get("/api/v1/balance", auth, getBalances);
 
-app.get("/klines", () => {
-    
-});
+app.post("/api/v1/balance/deposit", auth, addBalance);
 
-app.post("/balance/deposit", auth, addBalance);
+app.get("/api/v1/klines", getKlines);
 
 
 app.listen(4000, () => { console.log(`server running on 4000`) });
