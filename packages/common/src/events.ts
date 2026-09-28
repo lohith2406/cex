@@ -37,3 +37,10 @@ export const wsClientMessageSchema = z.object({
     method: z.enum(["SUBSCRIBE", "UNSUBSCRIBE"]),
     params: z.array(z.string()),
 });
+
+export type WsClientMessage = z.infer<typeof wsClientMessageSchema>;
+
+export type WsServerMessage = {
+    channel: string;
+    data: unknown;
+};

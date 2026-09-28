@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "bench": "bun run src/bench.ts"
+    "bench": "bun run src/bench.ts",
+    "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
     "typescript": "^5"

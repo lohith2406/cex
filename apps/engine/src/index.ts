@@ -82,10 +82,11 @@ async function readerListener() {
             for (const fill of result.fills) {
                 await writer.publish(tradeChannel(fill.market), 
                 JSON.stringify({
+                    id: fill.id,
                     price: fill.price, 
                     qty: fill.qty, 
                     takerSide: fill.takerSide, 
-                    ts: Date.now()
+                    timestamp: Date.now()
                 }));
             }
 

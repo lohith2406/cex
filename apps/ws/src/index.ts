@@ -73,9 +73,11 @@ function broadcast(message: string, channel: string) {
         return;
     }
     
+    const data = `{"channel": ${JSON.stringify(channel)}, "data": ${message}}`;
+
     sockets.forEach((socket) => {
         if (socket.readyState === WebSocket.OPEN) { // a socket can be mid-close while you're iterating which throws on .send()
-            socket.send(message);
+            socket.send(data);
         }
     })
 }

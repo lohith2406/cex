@@ -106,15 +106,19 @@ const depthLevelSchema = z.object({
     qty: z.number().int(),
 });
 
+export const depthSchema = z.object({
+    bids: z.array(depthLevelSchema),
+    asks: z.array(depthLevelSchema),
+    lastTradedPrice: z.number().int(),
+});
+
 export const getDepthReplySchema = z.object({
     type: z.literal("get_depth"),
     reqId: z.uuid(),
-    data: z.object({
-        bids: z.array(depthLevelSchema),
-        asks: z.array(depthLevelSchema),
-        lastTradedPrice: z.number().int(),
-    }),
+    data: depthSchema,
 });
+
+export type Depth = z.infer<typeof depthSchema>;
 
 export const errorReplySchema = z.object({
     type: z.literal("error"),

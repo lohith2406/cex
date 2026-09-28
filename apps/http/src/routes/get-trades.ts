@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../db";
-import { getTradesQuerySchema, zodErrorMessage } from "@repo/common";
+import { getTradesQuerySchema, zodErrorMessage, type Trade } from "@repo/common";
 
 export async function getTrades(req: Request, res: Response) {
     const parsed = getTradesQuerySchema.safeParse(req.query);
@@ -13,7 +13,7 @@ export async function getTrades(req: Request, res: Response) {
         return;
     }
 
-    const trades = await prisma.fill.findMany({
+    const fills = await prisma.fill.findMany({
         where: {
             market: parsed.data.market
         },
@@ -22,12 +22,21 @@ export async function getTrades(req: Request, res: Response) {
         },
         take: parsed.data.limit,
         select: {
+            id: true,
             price: true,
             qty: true,
             takerSide: true,
             createdAt: true
         }
     });
+
+    const trades: Trade[] = fills.map((fill) => ({
+        id: fill.id,
+        price: fill.price,
+        qty: fill.qty,
+        takerSide: fill.takerSide,
+        timestamp: fill.createdAt.getTime()
+    }))
 
     res.status(200).json({
         message: "trades fetched",

@@ -15,5 +15,8 @@
   },
   "dependencies": {
     "jsonwebtoken": "^9.0.3"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
   }
 }

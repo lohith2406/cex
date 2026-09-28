@@ -1,5 +1,5 @@
 import z from "zod";
-import { marketSchema } from "./types";
+import { marketSchema, type OrderSide } from "./types";
 import { addBalanceRequestSchema, createOrderRequestSchema } from "./engine";
 
 export const createOrderBodySchema = createOrderRequestSchema.omit({
@@ -42,4 +42,12 @@ export type Candle = {
     low: number;
     close: number;
     volume: number;
+};
+
+export type Trade = {
+    id: string;
+    price: number;
+    qty: number;
+    takerSide: OrderSide;
+    timestamp: number;
 };

@@ -130,6 +130,13 @@ Listed because they are real, not because they are planned away.
   whole book for its market.
 - **No WebSocket heartbeat.** A client whose network drops without closing leaves a socket
   in the registry.
+- **Timestamps are stored as `timestamp` rather than `timestamptz`.** Prisma's `DateTime`
+  maps to a Postgres column with no time zone unless told otherwise. Values round-trip
+  correctly today because Prisma normalizes to UTC on write and reads them back as UTC, so
+  it is only a problem once something else writes to those columns: a raw insert using
+  `now()`, another service, or a manual edit would store local wall-clock time
+  indistinguishable from the UTC values beside it. Fix is `@db.Timestamptz(3)` and a
+  migration.
 
 ## WebSocket protocol
 

@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { auth } from "./middleware/auth";
 import { signup } from "./routes/signup";
 import { signin } from "./routes/signin";
@@ -17,6 +18,9 @@ import { getKlines } from "./routes/get-klines";
 const app = express();
 
 app.use(express.json());
+app.use(cors({
+    origin: "http://localhost:3000"
+}));
 
 app.post("/api/v1/signup", signup);
 

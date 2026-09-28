@@ -11,7 +11,8 @@
     "typescript": "^5"
   },
   "scripts": {
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@repo/common": "workspace:*",

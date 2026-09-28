@@ -24,10 +24,10 @@ export async function getKlines(req: Request, res: Response) {
     }
 
     const bucketSeconds = INTERVAL_SECONDS[parsed.data.interval];
-    const windowMs = bucketSeconds * 1000;
+    const windowMs = bucketSeconds * 1000; // width of one candle
 
     const endMs = parsed.data.end ?? Date.now();
-    const startMs = endMs - windowMs * MAX_CANDLES;
+    const startMs = endMs - windowMs * MAX_CANDLES; // end - width of the whole window
 
     const rows = await prisma.$queryRawTyped(klinesQuery(bucketSeconds, parsed.data.market, new Date(startMs), new Date(endMs)));
     /*
