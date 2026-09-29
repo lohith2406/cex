@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel, FieldDescription, FieldGroup, FieldError } from "@/components/ui/field";
 import Link from "next/link";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { api } from "@/lib/api";
 
 export default function SignUp() {
     const router = useRouter();
@@ -22,7 +21,7 @@ export default function SignUp() {
         setError("");
 
         try {
-            await axios.post(`${API_URL}/signup`, { email, password })
+            await api.post(`/signup`, { email, password })
             router.push("/signin");
         } catch (err) {
             if (axios.isAxiosError(err)) {

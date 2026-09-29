@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
 import type { Depth } from "@repo/common";
+import { api } from "@/lib/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const emptyDepth: Depth = {
     bids: [],
     asks: [],
@@ -37,7 +36,7 @@ export function Orderbook() {
     const [depth, setDepth] = useState<Depth>(emptyDepth)
 
     useEffect(() => {
-        axios.get<{ data: Depth }>(`${API_URL}/depth?market=BTC`)
+        api.get<{ data: Depth }>("/depth?market=BTC")
             .then((response) => setDepth(response.data.data))
     }, []);
 

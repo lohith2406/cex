@@ -1,10 +1,9 @@
 "use client";
 
+import { api } from "@/lib/api";
 import type { OrderSide, Trade } from "@repo/common";
-import axios from "axios"
 import { useEffect, useState } from "react"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 function Row({ price, qty, time, side }: { price: number, qty: number, time: string, side: OrderSide }) {
     return (
@@ -20,7 +19,7 @@ export function Trades() {
     const [trades, setTrades] = useState<Trade[]>([]);
 
     useEffect(() => {
-        axios.get<{ data: Trade[] }>(`${API_URL}/trades?market=BTC&limit=50`)
+        api.get<{ data: Trade[] }>("/trades?market=BTC&limit=50")
             .then((response) => setTrades(response.data.data))
 
     }, []);

@@ -2,15 +2,13 @@
 
 import { useState, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel, FieldDescription, FieldGroup, FieldError } from "@/components/ui/field";
 import Link from "next/link";
-
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import axios from "axios";
+import { api } from "@/lib/api";
 
 export default function SignIn() {
     const router = useRouter();
@@ -23,9 +21,9 @@ export default function SignIn() {
         setError("");
 
         try {
-            const response = await axios.post<{ data: { token: string } }>(`${API_URL}/signin`, { email, password });
+            const response = await api.post<{ data: { token: string } }>(`/signin`, { email, password });
             localStorage.setItem("token", response.data.data.token);
-            router.push("/");
+            router.replace("/");
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 setError(err.response?.data?.error ?? "Something went wrong");

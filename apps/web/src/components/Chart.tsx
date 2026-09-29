@@ -2,10 +2,8 @@
 
 import { CandlestickSeries, ColorType, createChart, type UTCTimestamp } from "lightweight-charts";
 import { useEffect, useRef } from "react";
-import axios from "axios";
 import type { Candle } from "@repo/common";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { api } from "@/lib/api";
 
 export function Chart() {
     const boxRef = useRef<HTMLDivElement>(null);
@@ -46,7 +44,7 @@ export function Chart() {
 
         let cancelled = false;
 
-        axios.get<{ data: Candle[] }>(`${API_URL}/klines?market=BTC&interval=1h`)
+        api.get<{ data: Candle[] }>("/klines?market=BTC&interval=1h")
             .then((response) => {
                 if (cancelled) return;
 
