@@ -9,8 +9,7 @@ export async function signin(req: Request, res: Response) {
     const parsed = authSchema.safeParse(req.body);
 
     if (!parsed.success) {
-        res.status(411).json({ 
-            message: "Invalid inputs",
+        res.status(400).json({ 
             error: zodErrorMessage(parsed.error) 
         });
         return;
@@ -23,19 +22,21 @@ export async function signin(req: Request, res: Response) {
     });
 
     if (!user) {
-        res.status(401).json({ message: "Invalid credentials" });
+        res.status(401).json({ error: "Invalid credentials" });
         return;
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordMatch) {
-        res.status(401).json({ message: "Invalid credentials" });
+        res.status(401).json({ error: "Invalid credentials" });
         return;
     }
 
     res.status(200).json({
         message: "Signed in successfully",
-        token: generateToken(user.id, JWT_SECRET)
+        data: {
+            token: generateToken(user.id, JWT_SECRET)
+        }
     })
 }

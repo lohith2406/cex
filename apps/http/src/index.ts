@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
 import cors from "cors";
 import { auth } from "./middleware/auth";
 import { signup } from "./routes/signup";
@@ -48,5 +48,9 @@ app.post("/api/v1/balance/deposit", auth, addBalance);
 
 app.get("/api/v1/klines", getKlines);
 
+app.use("/", (err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    console.error(err)
+    res.status(500).json({ error: "Something went wrong" });
+});
 
 app.listen(4000, () => { console.log(`server running on 4000`) });

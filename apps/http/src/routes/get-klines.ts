@@ -17,7 +17,6 @@ export async function getKlines(req: Request, res: Response) {
 
     if (!parsed.success) {
         res.status(400).json({
-            message: "Invalid inputs",
             error: zodErrorMessage(parsed.error)
         });
         return;

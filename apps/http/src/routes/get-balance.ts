@@ -13,12 +13,12 @@ export async function getBalances(req: Request, res: Response) {
     const engineResponse = await sendToEngine(engineRequest);
 
     if (!engineResponse) {
-        res.status(504).json({ message: "Request timed out" })
+        res.status(504).json({ error: "Request timed out" })
         return;
     }
 
     if (engineResponse.type === "error") {
-        res.status(404).json({ error: engineResponse.error });
+        res.status(400).json({ error: engineResponse.error });
         return
     }
 

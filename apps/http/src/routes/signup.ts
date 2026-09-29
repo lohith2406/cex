@@ -7,8 +7,7 @@ export async function signup(req: Request, res: Response) {
     const parsed = authSchema.safeParse(req.body);
 
     if (!parsed.success) {
-        res.status(411).json({ 
-            message: "Invalid inputs", 
+        res.status(400).json({ 
             error: zodErrorMessage(parsed.error)
         });
         return;
@@ -21,7 +20,7 @@ export async function signup(req: Request, res: Response) {
     });
 
     if (existingUser) {
-        res.status(403).json({ message: "User already exists" });
+        res.status(409).json({ error: "User already exists" });
         return;
     }
 

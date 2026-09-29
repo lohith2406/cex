@@ -7,7 +7,6 @@ export async function getOrder(req: Request, res: Response) {
 
     if (!parsed.success) {
         res.status(400).json({
-            message: "Invalid inputs",
             error: zodErrorMessage(parsed.error)
         });
         return;
@@ -21,7 +20,7 @@ export async function getOrder(req: Request, res: Response) {
     });
 
     if (!order) {
-        res.status(404).json({ message: "Order not found" });
+        res.status(404).json({ error: "Order not found" });
         return;
     }
 

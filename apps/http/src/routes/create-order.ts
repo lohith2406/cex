@@ -7,7 +7,6 @@ export async function createOrder(req: Request, res: Response) {
 
     if (!parsed.success) {
         res.status(400).json({ 
-            message: "Invalid inputs",
             error: zodErrorMessage(parsed.error)
         });
         return;
@@ -23,12 +22,12 @@ export async function createOrder(req: Request, res: Response) {
     const engineResponse = await sendToEngine(engineRequest);
 
     if (!engineResponse) {
-        res.status(504).json({ message: "Request timed out" })
+        res.status(504).json({ error: "Request timed out" })
         return;
     }
 
     if (engineResponse.type === "error") {
-        res.status(404).json({ error: engineResponse.error });
+        res.status(400).json({ error: engineResponse.error });
         return;
     }
 
