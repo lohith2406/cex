@@ -184,7 +184,7 @@ test("lastTradedPrice follows the last fill", () => {
     ob.placeOrder(sell(101, 5));
     ob.placeOrder(sell(102, 5));
 
-    expect(ob.depth("BTC").lastTradedPrice).toBe(0);
+    expect(ob.depth("BTC").lastTradedPrice).toBeNull();
 
     ob.placeOrder(buy(102, 8));
 

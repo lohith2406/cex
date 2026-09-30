@@ -12,7 +12,8 @@
   "scripts": {
     "dev": "bun run --watch src/index.ts",
     "check-types": "tsc --noEmit",
-    "seed": "bun run scripts/seed.ts"
+    "seed": "bun run scripts/seed.ts",
+    "backfill": "bun run scripts/backfill.ts"
   },
   "peerDependencies": {
     "typescript": "^5"

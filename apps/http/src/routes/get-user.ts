@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { prisma } from "../db";
 
 export async function getUser(req: Request, res: Response) {
-    const user = await prisma.user.findMany({
+    const user = await prisma.user.findUnique({
         where: {
             id: req.userId
         },

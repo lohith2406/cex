@@ -109,7 +109,7 @@ const depthLevelSchema = z.object({
 export const depthSchema = z.object({
     bids: z.array(depthLevelSchema),
     asks: z.array(depthLevelSchema),
-    lastTradedPrice: z.number().int(),
+    lastTradedPrice: z.number().int().nullable(),
 });
 
 export const getDepthReplySchema = z.object({

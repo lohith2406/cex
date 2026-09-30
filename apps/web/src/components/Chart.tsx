@@ -30,8 +30,12 @@ export function Chart() {
                     color: "#171717"
                 }
             },
+            rightPriceScale: {
+                borderVisible: false
+            },
             timeScale: {
-                timeVisible: true
+                timeVisible: true,
+                borderVisible: false
             }
         });
         const series = chart.addSeries(CandlestickSeries, {
@@ -57,6 +61,8 @@ export function Chart() {
                 }));
 
                 series.setData(candles);
+
+                chart.timeScale().fitContent();
             })
 
         return () => {
@@ -66,6 +72,6 @@ export function Chart() {
     }, [])
 
     return (
-        <div ref={boxRef} className="h-96 w-160"></div>
+        <div ref={boxRef} className="h-full w-full"></div>
     )
 }

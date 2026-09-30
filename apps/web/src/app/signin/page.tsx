@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type SubmitEvent } from "react";
+import { useContext, useState, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,10 @@ import { Field, FieldLabel, FieldDescription, FieldGroup, FieldError } from "@/c
 import Link from "next/link";
 import axios from "axios";
 import { api } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 export default function SignIn() {
+    const { signIn } = useAuth();
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -22,7 +24,7 @@ export default function SignIn() {
 
         try {
             const response = await api.post<{ data: { token: string } }>(`/signin`, { email, password });
-            localStorage.setItem("token", response.data.data.token);
+            await signIn(response.data.data.token);
             router.replace("/");
         } catch (err) {
             if (axios.isAxiosError(err)) {

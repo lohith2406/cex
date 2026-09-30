@@ -14,7 +14,7 @@ type Level = {
 type Book = {
     bids: Level[];
     asks: Level[];
-    lastTradedPrice: number;
+    lastTradedPrice: number | null;
 }
 
 /*
@@ -159,7 +159,7 @@ export class OrderBook {
             book = {
                 bids: [],
                 asks: [],
-                lastTradedPrice: 0
+                lastTradedPrice: null
             };
             this.books.set(market, book);
         }
