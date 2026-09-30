@@ -9,8 +9,8 @@ function Row({ price, qty, cumulative, side, maxCumulative }: { price: number, q
                 style={{ width: `${(cumulative / maxCumulative) * 100}%` }}
             />
             <span className={`relative ${side === "bid" ? "text-up" : "text-down"}`}>{price}</span>
-            <span className="relative text-right text-neutral-300">{qty}</span>
-            <span className="relative text-right text-dim">{cumulative}</span>
+            <span className="relative text-right text-foreground">{qty}</span>
+            <span className="relative text-right text-muted-foreground">{cumulative}</span>
         </div>
     )
 }
@@ -34,7 +34,7 @@ export function Orderbook() {
 
     const { data: depth, isPending, isError } = useDepth()
 
-    if (isPending) return <div className="p-3 text-sm text-dim">Loading order book…</div>;
+    if (isPending) return <div className="p-3 text-sm text-muted-foreground">Loading order book…</div>;
     if (isError) return <div className="p-3 text-sm text-down">Couldn&apos;t load the order book</div>;
 
     const bids = withCumulative(depth.bids);
@@ -47,9 +47,9 @@ export function Orderbook() {
     const maxCumulative = Math.max(bids.at(-1)?.cumulative ?? 0, asks.at(-1)?.cumulative ?? 0, 1);
 
     return (
-        <div className="flex flex-col h-full w-full bg-panel py-2">
+        <div className="flex flex-col h-full w-full bg-card py-2">
 
-            <div className="grid grid-cols-3 border-b border-line px-2 pb-1.5 text-[11px] uppercase tracking-wide text-dim">
+            <div className="grid grid-cols-3 border-b px-2 pb-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
                 <span>Price</span>
                 <span className="text-right">Size</span>
                 <span className="text-right">Total</span>
@@ -60,9 +60,9 @@ export function Orderbook() {
             </div>
 
 
-            <div className="flex items-center justify-between border-y border-line bg-white/3 px-2 py-2 tabular-nums">
+            <div className="flex items-center justify-between border-y bg-muted px-2 py-2 tabular-nums">
                 <span className="text-lg">{depth.lastTradedPrice ?? "-"}</span>
-                <span className="text-sm text-dim">${spread ?? "-"} ({spreadPercent ?? "-"}%)</span>
+                <span className="text-sm text-muted-foreground">${spread ?? "-"} ({spreadPercent ?? "-"}%)</span>
             </div>
             
             <div className="flex-1">

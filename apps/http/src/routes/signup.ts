@@ -2,6 +2,8 @@ import { prisma } from "../db";
 import { authSchema, zodErrorMessage } from "@repo/common";
 import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
+import { generateToken } from "@repo/auth";
+import { JWT_SECRET } from "../env";
 
 export async function signup(req: Request, res: Response) {
     const parsed = authSchema.safeParse(req.body);
@@ -26,12 +28,21 @@ export async function signup(req: Request, res: Response) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.user.create({
+    const user = await prisma.user.create({
         data: {
             email,
             password: hashedPassword
         }
     });
 
-    res.status(201).json({ message: "Signed up successfully" });
+    res.status(201).json({
+        message: "Signed up successfully",
+        data: {
+            token: generateToken(user.id, JWT_SECRET),
+            user: { 
+                id: user.id,
+                email: user.email
+            }
+        }
+    })
 }

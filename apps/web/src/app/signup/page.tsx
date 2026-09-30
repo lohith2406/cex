@@ -9,20 +9,23 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldLabel, FieldDescription, FieldGroup, FieldError } from "@/components/ui/field";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { useSignIn } from "@/queries/useUser";
 
 export default function SignUp() {
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const signIn = useSignIn();
 
     async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
         setError("");
 
         try {
-            await api.post(`/signup`, { email, password })
-            router.push("/signin");
+            const response = await api.post<{ data: { token: string } }>(`/signup`, { email, password })
+            signIn(response.data.data.token);
+            router.replace("/");
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 setError(err.response?.data?.error ?? "Something went wrong");

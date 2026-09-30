@@ -46,12 +46,8 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --color-canvas: #0d1015; /* page background */
-  --color-panel: #13171d; /* panels */
-  --color-line: #232a33; /* boarders, dividers */
-  --color-dim: #8a94a3; /* secondary text, labels */
-  --color-up: #3dd68c; /* buy, bids, price up */
-  --color-down: #f0616d; /* sell, asks, price down */
+  --color-up: var(--up); /* buy, bids, price up */
+  --color-down: var(--down); /* sell, asks, price down */
 }
 
 :root {
@@ -121,6 +117,8 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --up: #3dd68c;
+  --down: #f0616d;
 }
 
 @layer base {

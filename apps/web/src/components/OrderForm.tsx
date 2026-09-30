@@ -2,20 +2,28 @@
 
 import { api } from "@/lib/api";
 import axios from "axios";
-import { type SubmitEvent, useContext, useState } from "react";
+import { type SubmitEvent, useState } from "react";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "./ui/field";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { type OrderSide } from "@repo/common";
-import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
+import { useBalance } from "@/queries/useBalance";
+import { useUser } from "@/queries/useUser";
+
 
 export function OrderForm() {
-    const { email } = useAuth();
     const [side, setSide] = useState<OrderSide>("BUY");
     const [price, setPrice] = useState("");
     const [qty, setQty] = useState("");
     const [error, setError] = useState("");
+    const { data: balance } = useBalance();
+    const { data: user } = useUser();
+    const queryClient = useQueryClient();
+
+    const asset = side === "BUY" ? "USD" : "BTC";
+    const available = balance ? balance[asset].total - balance[asset].locked : null;
 
     async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -31,6 +39,9 @@ export function OrderForm() {
             });
             setPrice("");
             setQty("");
+            queryClient.invalidateQueries({ queryKey: ["depth"] });
+            queryClient.invalidateQueries({ queryKey: ["trades"] });
+            queryClient.invalidateQueries({ queryKey: ["balance"] });
 
         } catch (err) {
             if (axios.isAxiosError(err)) {
@@ -40,7 +51,7 @@ export function OrderForm() {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="w-full bg-panel p-3">
+        <form onSubmit={handleSubmit} className="w-full bg-card p-3">
             <FieldGroup>
                 <div className="grid grid-cols-2 gap-2">
                     <Button
@@ -84,18 +95,24 @@ export function OrderForm() {
                         value={qty}
                         onChange={(e) => setQty(e.target.value)}
                     />
-                    <FieldDescription>Total = {Number(price) * Number(qty)} USD</FieldDescription>
+                    { price && qty && (
+                        <FieldDescription>Total: {(Number(price) * Number(qty)).toLocaleString()} USD</FieldDescription>
+                    )}
+                    {user &&
+                        <FieldDescription>Available: {available ?? "-"} {asset}</FieldDescription>
+                    }
                 </Field>
 
                 <Field>
-                    { email ? (
-                    <Button
-                        type="submit"
-                        className={side === "BUY" ? "bg-up hover:bg-up/90": "bg-down hover:bg-down/90"}
-                    >
-                        {side === "BUY" ? "Buy BTC" : "Sell BTC"}
-                    </Button>
-                    ) : (
+                    {user && (
+                        <Button
+                            type="submit"
+                            className={side === "BUY" ? "bg-up hover:bg-up/90" : "bg-down hover:bg-down/90"}
+                        >
+                            {side === "BUY" ? "Buy BTC" : "Sell BTC"}
+                        </Button>
+                    )}
+                    {user === null && (
                         <Button type="button" asChild>
                             <Link href="/signin">Sign in to trade</Link>
                         </Button>

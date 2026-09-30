@@ -1,6 +1,7 @@
 "use client";
 
 import { api } from "@/lib/api";
+import { useTrades } from "@/queries/useTrades";
 import type { OrderSide, Trade } from "@repo/common";
 import { useEffect, useState } from "react"
 
@@ -16,16 +17,14 @@ function Row({ price, qty, time, side }: { price: number, qty: number, time: str
 }
 
 export function Trades() {
-    const [trades, setTrades] = useState<Trade[]>([]);
+    const { data: trades, isPending, isError } = useTrades();
 
-    useEffect(() => {
-        api.get<{ data: Trade[] }>("/trades?market=BTC&limit=50")
-            .then((response) => setTrades(response.data.data))
+    if (isPending) return <div className="p-3 text-sm text-muted-foreground">Loading trades</div>;
+    if (isError) return <div className="p-3 text-sm text-down">Couldn&apos;t load the trades</div>;
 
-    }, []);
     return (
-        <div className="w-full bg-panel py-2">
-            <div className="grid grid-cols-3 border-b border-line px-2 pb-1.5 text-[11px] uppercase tracking-wide text-dim">
+        <div className="w-full bg-card py-2">
+            <div className="grid grid-cols-3 border-b px-2 pb-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
                 <span>Price (USD)</span>
                 <span className="text-right">Qty (BTC)</span>
                 <span className="text-right">Time</span>

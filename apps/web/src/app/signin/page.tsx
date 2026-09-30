@@ -9,14 +9,14 @@ import { Field, FieldLabel, FieldDescription, FieldGroup, FieldError } from "@/c
 import Link from "next/link";
 import axios from "axios";
 import { api } from "@/lib/api";
-import { useAuth } from "@/context/AuthContext";
+import { useSignIn } from "@/queries/useUser";
 
 export default function SignIn() {
-    const { signIn } = useAuth();
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const signIn = useSignIn();
 
     async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -24,7 +24,7 @@ export default function SignIn() {
 
         try {
             const response = await api.post<{ data: { token: string } }>(`/signin`, { email, password });
-            await signIn(response.data.data.token);
+            signIn(response.data.data.token);
             router.replace("/");
         } catch (err) {
             if (axios.isAxiosError(err)) {

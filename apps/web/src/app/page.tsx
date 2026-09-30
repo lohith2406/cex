@@ -10,10 +10,10 @@ export default function Home() {
     <div className="flex h-svh flex-col">
       <Header />
       <main className="grid min-h-0 flex-1 grid-cols-[1fr_18rem_18rem] gap-2 p-2">
-        <div className="min-h-0 bg-panel">
+        <div className="min-h-0 bg-card">
           <Chart />
         </div>
-        <Tabs defaultValue="book" className="min-h-0 bg-panel p-2">
+        <Tabs defaultValue="book" className="min-h-0 bg-card p-2">
           <TabsList>
             <TabsTrigger value="book">Book</TabsTrigger>
             <TabsTrigger value="trades">Trades</TabsTrigger>

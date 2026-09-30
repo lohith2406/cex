@@ -36,7 +36,11 @@ export async function signin(req: Request, res: Response) {
     res.status(200).json({
         message: "Signed in successfully",
         data: {
-            token: generateToken(user.id, JWT_SECRET)
+            token: generateToken(user.id, JWT_SECRET),
+            user: { 
+                id: user.id,
+                email: user.email
+            }
         }
     })
 }

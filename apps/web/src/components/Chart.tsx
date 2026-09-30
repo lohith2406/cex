@@ -18,16 +18,16 @@ export function Chart() {
             layout: {
                 background: {
                     type: ColorType.Solid, 
-                    color: "#0a0a0a"
+                    color: "#171717"
                 },
-                textColor: "#a3a3a3",
+                textColor: "#a1a1a1",
             },
             grid: {
                 vertLines: {
-                    color: "#171717"
+                    color: "#262626"
                 },
                 horzLines: {
-                    color: "#171717"
+                    color: "#262626"
                 }
             },
             rightPriceScale: {
@@ -39,10 +39,10 @@ export function Chart() {
             }
         });
         const series = chart.addSeries(CandlestickSeries, {
-            upColor: "#34d399",
-            downColor: "#fb7185",
-            wickUpColor: "#34d399",
-            wickDownColor: "#fb7185",
+            upColor: "#3dd68c",
+            downColor: "#f0616d",
+            wickUpColor: "#3dd68c",
+            wickDownColor: "#f0616d",
             borderVisible: false,
         });
 

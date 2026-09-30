@@ -26,7 +26,7 @@ app.post("/api/v1/signup", signup);
 
 app.post("/api/v1/signin", signin);
 
-app.get("/api/v1/me", auth, getUser)
+app.get("/api/v1/user", auth, getUser)
 
 app.post("/api/v1/orders", auth, createOrder);
 
