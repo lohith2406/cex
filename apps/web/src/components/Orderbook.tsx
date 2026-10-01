@@ -25,12 +25,6 @@ function withCumulative(levels: { price: number, qty: number }[]) {
 }
 
 export function Orderbook() {
-    // const [depth, setDepth] = useState<Depth>(emptyDepth)
-
-    // useEffect(() => {
-    //     api.get<{ data: Depth }>("/depth?market=BTC")
-    //         .then((response) => setDepth(response.data.data))
-    // }, []);
 
     const { data: depth, isPending, isError } = useDepth()
 

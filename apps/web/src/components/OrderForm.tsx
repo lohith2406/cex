@@ -42,6 +42,7 @@ export function OrderForm() {
             queryClient.invalidateQueries({ queryKey: ["depth"] });
             queryClient.invalidateQueries({ queryKey: ["trades"] });
             queryClient.invalidateQueries({ queryKey: ["balance"] });
+            queryClient.invalidateQueries({ queryKey: ["openOrders"] });
 
         } catch (err) {
             if (axios.isAxiosError(err)) {
@@ -99,7 +100,7 @@ export function OrderForm() {
                         <FieldDescription>Total: {(Number(price) * Number(qty)).toLocaleString()} USD</FieldDescription>
                     )}
                     {user &&
-                        <FieldDescription>Available: {available ?? "-"} {asset}</FieldDescription>
+                        <FieldDescription>Available: {available?.toLocaleString() ?? "-"} {asset}</FieldDescription>
                     }
                 </Field>
 

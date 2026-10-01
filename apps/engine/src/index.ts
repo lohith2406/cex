@@ -1,4 +1,4 @@
-import { depthChannel, ENGINE_EVENTS, ENGINE_REPLIES, ENGINE_REQUESTS, engineRequestSchema, tradeChannel, zodErrorMessage, type AddBalanceReply, type CancelOrderReply, type CreateOrderReply, type EngineReply, type GetBalanceReply, type GetDepthReply, type OrderCancelledMessage, type OrderResultMessage } from "@repo/common";
+import { depthChannel, ENGINE_EVENTS, ENGINE_REPLIES, ENGINE_REQUESTS, engineRequestSchema, tradeChannel, zodErrorMessage, type AddBalanceReply, type CancelOrderReply, type CreateOrderReply, type EngineReply, type GetBalanceReply, type GetDepthReply, type GetOpenOrdersReply, type OrderCancelledMessage, type OrderResultMessage } from "@repo/common";
 import { reader, writer } from "./redis";
 import { OrderBook } from "./store/orderbook";
 import { BalanceStore } from "./store/balance";
@@ -171,6 +171,14 @@ async function readerListener() {
                 reqId: parsed.data.reqId,
                 data: orderbook.depth(parsed.data.market)
             }
+
+            await sendToBackend(reply);
+        } else if (parsed.data.type === "get_open_orders") {
+            const reply: GetOpenOrdersReply = {
+                type: "get_open_orders",
+                reqId: parsed.data.reqId,
+                data: orderbook.openOrders(parsed.data.userId)
+            };
 
             await sendToBackend(reply);
         }

@@ -12,7 +12,8 @@ export async function getFills(req: Request, res: Response) {
         },
         orderBy: {
             createdAt: "desc"
-        }
+        },
+        take: 50
     });
 
     res.status(200).json({

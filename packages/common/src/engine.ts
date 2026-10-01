@@ -45,12 +45,19 @@ export const getDepthRequestSchema = z.object({
     market: marketSchema,
 });
 
+export const getOpenOrdersRequestSchema = z.object({
+    type: z.literal("get_open_orders"),
+    reqId: z.uuid(),
+    userId: z.uuid()
+});
+
 export const engineRequestSchema = z.discriminatedUnion("type", [
     createOrderRequestSchema,
     addBalanceRequestSchema,
     getBalanceRequestSchema,
     cancelOrderRequestSchema,
-    getDepthRequestSchema
+    getDepthRequestSchema,
+    getOpenOrdersRequestSchema
 ]);
 
 export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>;
@@ -58,6 +65,7 @@ export type AddBalanceRequest = z.infer<typeof addBalanceRequestSchema>;
 export type GetBalanceRequest = z.infer<typeof getBalanceRequestSchema>;
 export type CancelOrderRequest = z.infer<typeof cancelOrderRequestSchema>;
 export type GetDepthRequest = z.infer<typeof getDepthRequestSchema>;
+export type GetOpenOrdersRequest = z.infer<typeof getOpenOrdersRequestSchema>;
 
 export const createOrderReplySchema = z.object({
     type: z.literal("create_order"),
@@ -126,6 +134,12 @@ export const errorReplySchema = z.object({
     error: z.string(),
 });
 
+export const getOpenOrdersReplySchema = z.object({
+    type: z.literal("get_open_orders"),
+    reqId: z.uuid(),
+    data: z.array(orderSchema)
+})
+
 export const engineReplySchema = z.discriminatedUnion("type", [
     createOrderReplySchema,
     addBalanceReplySchema,
@@ -133,6 +147,7 @@ export const engineReplySchema = z.discriminatedUnion("type", [
     cancelOrderReplySchema,
     getDepthReplySchema,
     errorReplySchema,
+    getOpenOrdersReplySchema
 ]);
 
 export type EngineRequest = z.infer<typeof engineRequestSchema>;
@@ -142,4 +157,5 @@ export type GetBalanceReply = z.infer<typeof getBalanceReplySchema>;
 export type CancelOrderReply = z.infer<typeof cancelOrderReplySchema>;
 export type GetDepthReply = z.infer<typeof getDepthReplySchema>;
 export type ErrorReply = z.infer<typeof errorReplySchema>;
+export type GetOpenOrdersReply = z.infer<typeof getOpenOrdersReplySchema>;
 export type EngineReply = z.infer<typeof engineReplySchema>;

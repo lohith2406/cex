@@ -5,11 +5,15 @@ export async function getOrders(req: Request, res: Response) {
 
     const orders = await prisma.order.findMany({
         where: {
-            userId: req.userId
+            userId: req.userId,
+            status: {
+                notIn: ["OPEN", "PARTIALLY_FILLED"]
+            }
         },
         orderBy: {
             createdAt: "desc"
-        }
+        },
+        take: 50
     });
 
     res.status(200).json({ 

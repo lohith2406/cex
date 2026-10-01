@@ -253,6 +253,17 @@ export class OrderBook {
         return { bids, asks, lastTradedPrice: book.lastTradedPrice };
     }
 
+    openOrders(userId: string) {
+        const open: Order[] = [];
+        for (const order of this.orders.values()) {
+            if (order.userId === userId && (order.status === "OPEN" || order.status === "PARTIALLY_FILLED")) {
+                open.push(order)
+            }
+        }
+
+        return open;
+    }
+
     saveSnapshot(): OrderBookSnapshot {
         return {
             books: [...this.books],

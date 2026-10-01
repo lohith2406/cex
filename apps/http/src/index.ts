@@ -14,6 +14,7 @@ import { getFills } from "./routes/get-fills";
 import { getTrades } from "./routes/get-trades";
 import { getUser } from "./routes/get-user";
 import { getKlines } from "./routes/get-klines";
+import { getOpenOrders } from "./routes/get-open-orders";
 
 const app = express();
 
@@ -29,6 +30,8 @@ app.post("/api/v1/signin", signin);
 app.get("/api/v1/user", auth, getUser)
 
 app.post("/api/v1/orders", auth, createOrder);
+
+app.get("/api/v1/orders/open", auth, getOpenOrders);
 
 app.get("/api/v1/orders/:orderId", auth, getOrder);
 
@@ -51,6 +54,10 @@ app.get("/api/v1/klines", getKlines);
 app.use("/", (err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     console.error(err)
     res.status(500).json({ error: "Something went wrong" });
+});
+
+app.use((_req, res) => { 
+    res.status(404).json({ error: "Route not found" }); 
 });
 
 app.listen(4000, () => { console.log(`server running on 4000`) });
