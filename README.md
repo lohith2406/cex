@@ -27,6 +27,7 @@ WebSocket service, and the HTTP layer never calls the engine directly.
 | `apps/engine` | Matching, balances, the order book. Single process, all state in RAM. |
 | `apps/db-worker` | Drains engine events into Postgres. |
 | `apps/ws` | Fans depth and trades out to browser clients. |
+| `apps/web` | Next.js trading screen: chart, order book, trades, order form, account panel. |
 | `packages/common` | Zod schemas shared by every service. The wire protocol lives here. |
 | `packages/db` | Prisma schema and client. |
 | `packages/redis` | Connection factory. |
@@ -42,9 +43,9 @@ comes from a single question: what breaks if a message is lost?
   client ──HTTP──►   http   │
          ◄────────└────┬─────┘
                        │
-       LPUSH engine:requests        list, because exactly one engine must
-       SUBSCRIBE reply:<reqId>      take each order, and the reply has to
-                       │            find the one client that is waiting
+       LPUSH engine:requests        lists, because exactly one engine must
+       BRPOP engine:replies         take each order; http matches each
+                       │            reply to its waiting request by reqId
                  ┌─────▼─────┐
                  │  engine   │
                  └──┬─────┬──┘
@@ -62,7 +63,7 @@ comes from a single question: what breaks if a message is lost?
                Postgres        browsers
 ```
 
-A list gives addressing but no durability. A stream gives durability and replay but no
+A list gives exactly-once pickup but no durability. A stream gives durability and replay but no
 per-request routing. Pub/sub gives broadcast but drops anything nobody is listening for.
 None of the three is better than the others; each leg needs a different one.
 
@@ -137,6 +138,13 @@ Listed because they are real, not because they are planned away.
   `now()`, another service, or a manual edit would store local wall-clock time
   indistinguishable from the UTC values beside it. Fix is `@db.Timestamptz(3)` and a
   migration.
+- **One http instance only.** Every engine reply goes to a single `engine:replies` list, so
+  a second http process would pop replies meant for the first and both would time out. Fix
+  is a reply key per instance, or pub/sub on `reply:<reqId>`.
+- **Test deposits are unlimited.** Anyone can fund themselves with any amount. Fine for a
+  demo; real use needs a cap or rate limit.
+- **The frontend is hardwired to BTC.** The engine and the WebSocket service are
+  multi-market; the screen is not.
 
 ## WebSocket protocol
 
@@ -144,24 +152,57 @@ Listed because they are real, not because they are planned away.
 { "method": "SUBSCRIBE", "params": ["depth.BTC", "trade.BTC"] }
 ```
 
+Every message comes back wrapped with its channel:
+
+```json
+{ "channel": "trade.BTC", "data": { "id": "...", "price": 101, "qty": 1, "takerSide": "BUY", "timestamp": 1759483502000 } }
+```
+
 Channel names are the same strings the engine publishes to, so adding a market needs no
 change in the WebSocket service.
+
+## Frontend
+
+Next.js (App Router), TanStack Query, Tailwind, shadcn/ui, and lightweight-charts for the
+candles.
+
+All server data lives in the TanStack Query cache, one key per thing: depth, trades,
+klines, balance, open orders, order history. Components only read the cache, and none of
+them knows a WebSocket exists. A single `MarketFeed` component owns the one socket and
+writes into the cache:
+
+- `depth.BTC` replaces the depth entry outright.
+- `trade.BTC` prepends to the trade list, extends or opens the current 1h candle, and
+  invalidates balance, open orders and order history. A public trade message does not say
+  whose order filled, so those are refetched rather than patched.
+
+On reconnect, depth and trades are refetched to cover whatever was missed while the
+socket was down. Reconnect retries every 2 seconds.
+
+New accounts start empty; the balances panel has a button that deposits test funds.
 
 ## Running it
 
 Needs Redis and Postgres. Each service reads its own `.env`: `REDIS_URL` everywhere,
-`DATABASE_URL` for http and db-worker, plus `JWT_SECRET` for http and `PORT` for ws.
+`DATABASE_URL` for http and db-worker, plus `JWT_SECRET` for http and `PORT` for ws. The
+web app reads `apps/web/.env.local`: `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_WS_URL`.
 
 ```sh
 bun install
 cd packages/db && bunx prisma migrate dev && bunx prisma generate
 
-bun run dev                          # all services
+bun run dev                          # all services, web on http://localhost:3000
+
+cd apps/http
+bun run seed                         # two users, a few trades, a resting book around 100
+bun run backfill                     # three days of trade history for the chart
+
 bun test                             # engine unit tests
 cd apps/engine && bun run bench      # the numbers above
 ```
 
+The seed users are `buyer@seed.local` and `seller@seed.local`, password `seedpassword`.
+
 ## Not built yet
 
-Perpetual futures, the trading frontend (`apps/web` is still the Turborepo starter), and
-klines.
+Perpetual futures, a market selector, and deployment.
