@@ -5,6 +5,8 @@ import { useBalance } from "@/queries/useBalance";
 import { useDepth } from "@/queries/useDepth";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
+import { useDeposit } from "@/queries/useDeposit";
+import { Button } from "./ui/button";
 
 function Row({ asset, total, available, locked, value }: { asset: string, total: number, available: number, locked: number, value: number | null }) {
     return (
@@ -22,6 +24,7 @@ export function Balances() {
     const { data: user } = useUser();
     const { data: balances, isPending, isError, refetch } = useBalance();
     const { data: depth } = useDepth();
+    const deposit = useDeposit();
 
     if (user === null) return <div className="p-3 text-sm text-muted-foreground">Sign in to see your balances</div>;
     if (isPending) return <LoadingState />;
@@ -43,6 +46,9 @@ export function Balances() {
     }
     return (
         <div>
+            <div className="flex justify-end px-3 py-1.5">
+                <Button variant="outline" size="xs" onClick={deposit}>Get test funds</Button>
+            </div>
             <div className="grid grid-cols-5 border-b px-3 pb-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
                 <span>Asset</span>
                 <span className="text-right">Total</span>
