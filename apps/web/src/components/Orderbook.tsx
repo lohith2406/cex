@@ -1,6 +1,8 @@
 "use client";
 
 import { useDepth } from "@/queries/useDepth";
+import { LoadingState } from "./LoadingState";
+import { ErrorState } from "./ErrorState";
 
 function Row({ price, qty, cumulative, side, maxCumulative }: { price: number, qty: number, cumulative: number, side: "bid" | "ask", maxCumulative: number }) {
     return (
@@ -26,10 +28,10 @@ function withCumulative(levels: { price: number, qty: number }[]) {
 
 export function Orderbook() {
 
-    const { data: depth, isPending, isError } = useDepth()
+    const { data: depth, isPending, isError, refetch } = useDepth()
 
-    if (isPending) return <div className="p-3 text-sm text-muted-foreground">Loading order book…</div>;
-    if (isError) return <div className="p-3 text-sm text-down">Couldn&apos;t load the order book</div>;
+    if (isPending) return <LoadingState />;    
+    if (isError) return <ErrorState onRetry={refetch}>Couldn&apos;t load the orderbook</ErrorState>;
 
     const bids = withCumulative(depth.bids);
     const asks = withCumulative(depth.asks);

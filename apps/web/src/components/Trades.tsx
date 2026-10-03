@@ -1,9 +1,9 @@
 "use client";
 
-import { api } from "@/lib/api";
 import { useTrades } from "@/queries/useTrades";
-import type { OrderSide, Trade } from "@repo/common";
-import { useEffect, useState } from "react"
+import type { OrderSide } from "@repo/common";
+import { LoadingState } from "./LoadingState";
+import { ErrorState } from "./ErrorState";
 
 
 function Row({ price, qty, time, side }: { price: number, qty: number, time: string, side: OrderSide }) {
@@ -17,10 +17,11 @@ function Row({ price, qty, time, side }: { price: number, qty: number, time: str
 }
 
 export function Trades() {
-    const { data: trades, isPending, isError } = useTrades();
+    const { data: trades, isPending, isError, refetch } = useTrades();
 
-    if (isPending) return <div className="p-3 text-sm text-muted-foreground">Loading trades</div>;
-    if (isError) return <div className="p-3 text-sm text-down">Couldn&apos;t load the trades</div>;
+    if (isPending) return <LoadingState />;
+    if (isError) return <ErrorState onRetry={refetch}>Couldn&apos;t load the trades</ErrorState>;
+    if (trades.length === 0) return <div className="p-3 text-sm text-muted-foreground">No trades</div>; 
 
     return (
         <div className="w-full bg-card py-2">

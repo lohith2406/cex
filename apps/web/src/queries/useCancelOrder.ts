@@ -9,7 +9,6 @@ export function useCancelOrder() {
             await api.delete(`/orders/${orderId}`);
         } finally {
             queryClient.invalidateQueries({ queryKey: ["openOrders"] });
-            queryClient.invalidateQueries({ queryKey: ["depth"] });
             queryClient.invalidateQueries({ queryKey: ["balance"] });
         }
     }

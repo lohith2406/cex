@@ -1,6 +1,7 @@
 import { Balances } from "@/components/Balances";
 import { Chart } from "@/components/Chart";
 import { Header } from "@/components/Header";
+import { MarketFeed } from "@/components/MarketFeed";
 import { OpenOrders } from "@/components/OpenOrders";
 import { Orderbook } from "@/components/Orderbook";
 import { OrderForm } from "@/components/OrderForm";
@@ -10,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function Home() {
   return (
     <div className="flex h-svh flex-col">
+      <MarketFeed />
       <Header />
       <main className="grid min-h-0 flex-1 grid-cols-[1fr_18rem_18rem] gap-2 p-2">
         <div className="flex min-h-0 flex-col gap-2">

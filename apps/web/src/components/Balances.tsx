@@ -1,42 +1,31 @@
 "use client";
 
 import { useUser } from "@/queries/useUser";
-import { Asset } from "@repo/common";
-import { Button } from "./ui/button";
 import { useBalance } from "@/queries/useBalance";
 import { useDepth } from "@/queries/useDepth";
-
-// orderId: string;
-// userId: string;
-// market: "BTC" | "ETH" | "SOL";
-// side: "BUY" | "SELL";
-// orderType: "MARKET" | "LIMIT";
-// price: number;
-// qty: number;
-// filledQty: number;
-// status: "OPEN" | "FILLED" | "PARTIALLY_FILLED" | "CANCELLED" | "EXPIRED";
-// createdAt: number;
+import { LoadingState } from "./LoadingState";
+import { ErrorState } from "./ErrorState";
 
 export function Row({ asset, total, available, locked, value }: { asset: string, total: number, available: number, locked: number, value: number | null }) {
     return (
-        <div className="grid grid-cols-5 px-3 py-1 text-sm tabular-nums">
+        <div className="grid grid-cols-5 px-3 py-1 text-xs tabular-nums">
             <span>{asset}</span>
-            <span>{total.toLocaleString()}</span>
-            <span>{available.toLocaleString()}</span>
-            <span>{locked.toLocaleString()}</span>
-            <span>{value?.toLocaleString()}</span>
+            <span className="text-right">{total.toLocaleString()}</span>
+            <span className="text-right">{available.toLocaleString()}</span>
+            <span className="text-right">{locked.toLocaleString()}</span>
+            <span className="text-right">{value?.toLocaleString() ?? "-"}</span>
         </div>
     )
 }
 
 export function Balances() {
     const { data: user } = useUser();
-    const { data: balances, isPending, isError } = useBalance();
+    const { data: balances, isPending, isError, refetch } = useBalance();
     const { data: depth } = useDepth();
-    
+
     if (user === null) return <div className="p-3 text-sm text-muted-foreground">Sign in to see your balances</div>;
-    if (isPending) return <div className="p-3 text-sm text-muted-foreground">Loading balances</div>;
-    if (isError) return <div className="p-3 text-sm text-down">Couldn&apos;t load your balances</div>;
+    if (isPending) return <LoadingState />;
+    if (isError) return <ErrorState onRetry={refetch}>Couldn&apos;t load your balances</ErrorState>;
 
     const rows = Object.entries(balances).filter(([_asset, balance]) => balance.total > 0);
     if (rows.length === 0) return <div className="p-3 text-sm text-muted-foreground">No balances</div>;
@@ -54,12 +43,12 @@ export function Balances() {
     }
     return (
         <div>
-            <div className="grid grid-cols-5 border-b px-2 pb-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+            <div className="grid grid-cols-5 border-b px-3 pb-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
                 <span>Asset</span>
-                <span>Total</span>
-                <span>Available</span>
-                <span>In orders</span>
-                <span>Value (USD)</span>
+                <span className="text-right">Total</span>
+                <span className="text-right">Available</span>
+                <span className="text-right">In orders</span>
+                <span className="text-right">Value (USD)</span>
             </div>
             {rows.map(([asset, balance]) => (
                 <Row 

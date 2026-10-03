@@ -39,8 +39,6 @@ export function OrderForm() {
             });
             setPrice("");
             setQty("");
-            queryClient.invalidateQueries({ queryKey: ["depth"] });
-            queryClient.invalidateQueries({ queryKey: ["trades"] });
             queryClient.invalidateQueries({ queryKey: ["balance"] });
             queryClient.invalidateQueries({ queryKey: ["openOrders"] });
 
