@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { Trade } from "@repo/common";
+import type { Trade } from "@repo/common";
 import { useQuery } from "@tanstack/react-query";
 
 export function useTrades() {

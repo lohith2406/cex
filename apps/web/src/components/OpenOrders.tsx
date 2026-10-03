@@ -2,7 +2,7 @@
 
 import { useOpenOrders } from "@/queries/useOpenOrders";
 import { useUser } from "@/queries/useUser";
-import { Order, OrderSide } from "@repo/common";
+import type { Order } from "@repo/common";
 import { Button } from "./ui/button";
 import { useCancelOrder } from "@/queries/useCancelOrder";
 import { LoadingState } from "./LoadingState";

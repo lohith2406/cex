@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { Asset } from "@repo/common";
+import type { Asset } from "@repo/common";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "./useUser";
 

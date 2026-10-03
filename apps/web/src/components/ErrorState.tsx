@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Button } from "./ui/button";
 
 export function ErrorState({ children, onRetry }: { children: ReactNode, onRetry: () => void }) {

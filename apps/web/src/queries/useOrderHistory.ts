@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "./useUser";
-import { Order } from "@repo/common";
+import type { Order } from "@repo/common";
 import { api } from "@/lib/api";
 
 export function useOrderHistory() {

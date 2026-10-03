@@ -1,6 +1,6 @@
 "use client";
 
-import { Candle, Trade } from "@repo/common";
+import type { Candle, Trade } from "@repo/common";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { CandlestickSeries, ColorType, createChart, IChartApi, ISeriesApi, type UTCTimestamp } from "lightweight-charts";
+import type { IChartApi, ISeriesApi} from "lightweight-charts";
+import { CandlestickSeries, ColorType, createChart, type UTCTimestamp } from "lightweight-charts";
 import { useEffect, useRef } from "react";
 import { useKlines } from "@/queries/useKlines";
 

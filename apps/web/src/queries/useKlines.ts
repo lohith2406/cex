@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { Candle } from "@repo/common";
+import type { Candle } from "@repo/common";
 import { useQuery } from "@tanstack/react-query";
 
 export function useKlines() {

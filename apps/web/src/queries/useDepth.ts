@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { Depth } from "@repo/common";
+import type { Depth } from "@repo/common";
 import { useQuery } from "@tanstack/react-query"
 
 export function useDepth() {

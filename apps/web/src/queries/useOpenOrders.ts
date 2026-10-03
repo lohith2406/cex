@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "./useUser";
 import { api } from "@/lib/api";
-import { Order } from "@repo/common";
+import type { Order } from "@repo/common";
 
 export function useOpenOrders() {
     const { data: user } = useUser();

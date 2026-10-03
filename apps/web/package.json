@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "oxlint",
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
@@ -30,8 +30,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.6",
+    "oxlint": "^1.86.0",
     "tailwindcss": "^4"
   },
   "ignoreScripts": [

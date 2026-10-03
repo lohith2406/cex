@@ -4,7 +4,7 @@ import { useOrderHistory } from "@/queries/useOrderHistory";
 import { useUser } from "@/queries/useUser";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
-import { Order } from "@repo/common";
+import type { Order } from "@repo/common";
 
 function Row({ order }: { order: Order }) {
     return (
