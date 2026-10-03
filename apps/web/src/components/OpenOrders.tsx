@@ -14,7 +14,7 @@ function Row({ order, cancel }: { order: Order, cancel: () => void }) {
             <span className={order.side === "BUY" ? "text-up" : "text-down"}>{order.side}</span>
             <span className="text-right">{order.price}</span>
             <span className="text-right">{order.filledQty}/{order.qty}</span>
-            <Button variant="ghost" size="xs" onClick={cancel}>Cancel</Button>
+            <Button variant="ghost" size="xs" className="justify-self-end text-muted-foreground hover:text-down" onClick={cancel}>Cancel</Button>
         </div>
     )
 }
