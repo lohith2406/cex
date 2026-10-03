@@ -5,6 +5,7 @@ import { MarketFeed } from "@/components/MarketFeed";
 import { OpenOrders } from "@/components/OpenOrders";
 import { Orderbook } from "@/components/Orderbook";
 import { OrderForm } from "@/components/OrderForm";
+import { OrderHistory } from "@/components/OrderHistory";
 import { Trades } from "@/components/Trades";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -30,6 +31,9 @@ export default function Home() {
               </TabsContent>
               <TabsContent value="openOrders">
                   <OpenOrders />
+              </TabsContent>
+              <TabsContent value="orderHistory">
+                  <OrderHistory />
               </TabsContent>
             </Tabs>
           </div>

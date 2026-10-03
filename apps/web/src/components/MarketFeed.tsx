@@ -35,6 +35,7 @@ export function MarketFeed() {
                     queryClient.setQueryData<Trade[]>(["trades", "BTC"], (old) => old ? [data, ...old].slice(0, 50): old);
                     queryClient.invalidateQueries({ queryKey: ["balance"] });
                     queryClient.invalidateQueries({ queryKey: ["openOrders"] });
+                    queryClient.invalidateQueries({ queryKey: ["orderHistory"] });
                     
                     queryClient.setQueryData<Candle[]>(["klines", "BTC", "1h"], (old) => {
                         if (!old) {

@@ -6,7 +6,7 @@ import { useDepth } from "@/queries/useDepth";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
 
-export function Row({ asset, total, available, locked, value }: { asset: string, total: number, available: number, locked: number, value: number | null }) {
+function Row({ asset, total, available, locked, value }: { asset: string, total: number, available: number, locked: number, value: number | null }) {
     return (
         <div className="grid grid-cols-5 px-3 py-1 text-xs tabular-nums">
             <span>{asset}</span>

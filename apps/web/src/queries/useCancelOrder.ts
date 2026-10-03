@@ -10,6 +10,7 @@ export function useCancelOrder() {
         } finally {
             queryClient.invalidateQueries({ queryKey: ["openOrders"] });
             queryClient.invalidateQueries({ queryKey: ["balance"] });
+            queryClient.invalidateQueries({ queryKey: ["orderHistory"] });
         }
     }
 }
