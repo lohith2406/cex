@@ -8,13 +8,21 @@ import { useCancelOrder } from "@/queries/useCancelOrder";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
 
-function Row({ order, cancel }: { order: Order, cancel: () => void }) {
+function Row({ order, cancel, cancelling }: { order: Order, cancel: () => void, cancelling: boolean }) {
     return (
         <div className="grid grid-cols-4 px-3 py-1 text-xs tabular-nums">
             <span className={order.side === "BUY" ? "text-up" : "text-down"}>{order.side}</span>
             <span className="text-right">{order.price}</span>
             <span className="text-right">{order.filledQty}/{order.qty}</span>
-            <Button variant="ghost" size="xs" className="justify-self-end text-muted-foreground hover:text-down" onClick={cancel}>Cancel</Button>
+            <Button 
+                variant="ghost" 
+                size="xs" 
+                className="justify-self-end text-muted-foreground hover:text-down" 
+                onClick={cancel}
+                disabled={cancelling}
+            >
+                    Cancel
+            </Button>
         </div>
     )
 }
@@ -40,7 +48,8 @@ export function OpenOrders() {
                 <Row 
                     key={openOrder.orderId}
                     order={openOrder}
-                    cancel={() => cancel(openOrder.orderId)}
+                    cancel={() => cancel.mutate(openOrder.orderId)}
+                    cancelling={cancel.isPending && cancel.variables === openOrder.orderId}
                 />
             ))}
         </div>

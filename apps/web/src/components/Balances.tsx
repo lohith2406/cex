@@ -47,7 +47,7 @@ export function Balances() {
     return (
         <div>
             <div className="flex justify-end px-3 py-1.5">
-                <Button variant="outline" size="xs" onClick={deposit}>Get test funds</Button>
+                <Button variant="outline" size="xs" disabled={deposit.isPending} onClick={() => deposit.mutate()}>Get test funds</Button>
             </div>
             <div className="grid grid-cols-5 border-b px-3 pb-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
                 <span>Asset</span>

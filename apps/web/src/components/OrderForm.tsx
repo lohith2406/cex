@@ -1,6 +1,5 @@
 "use client";
 
-import { api } from "@/lib/api";
 import axios from "axios";
 import { type SubmitEvent, useState } from "react";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "./ui/field";
@@ -8,45 +7,41 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { type OrderSide } from "@repo/common";
 import Link from "next/link";
-import { useQueryClient } from "@tanstack/react-query";
 import { useBalance } from "@/queries/useBalance";
 import { useUser } from "@/queries/useUser";
+import { usePlaceOrder } from "@/queries/usePlaceOrder";
 
 
 export function OrderForm() {
     const [side, setSide] = useState<OrderSide>("BUY");
     const [price, setPrice] = useState("");
     const [qty, setQty] = useState("");
-    const [error, setError] = useState("");
     const { data: balance } = useBalance();
     const { data: user } = useUser();
-    const queryClient = useQueryClient();
+    const placeOrder = usePlaceOrder();
+
+    let error = "";
+    if (axios.isAxiosError(placeOrder.error)) {
+        error = placeOrder.error.response?.data.error ?? "Something went wrong"
+    } else if (placeOrder.error) {
+        error = "Something went wrong";
+    }
 
     const asset = side === "BUY" ? "USD" : "BTC";
     const available = balance ? balance[asset].total - balance[asset].locked : null;
 
     async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
-        setError("");
-
-        try {
-            await api.post("/orders", {
-                market: "BTC",
-                side,
-                orderType: "LIMIT",
-                price: Number(price),
-                qty: Number(qty)
-            });
-            setPrice("");
-            setQty("");
-            queryClient.invalidateQueries({ queryKey: ["balance"] });
-            queryClient.invalidateQueries({ queryKey: ["openOrders"] });
-
-        } catch (err) {
-            if (axios.isAxiosError(err)) {
-                setError(err.response?.data.error ?? "Something went wrong");
+        placeOrder.mutate({
+            side, 
+            price: Number(price), 
+            qty: Number(qty)
+        }, {
+            onSuccess: () => {
+                setPrice("");
+                setQty("");
             }
-        }
+        })
     }
 
     return (
@@ -107,6 +102,7 @@ export function OrderForm() {
                         <Button
                             type="submit"
                             className={side === "BUY" ? "bg-up hover:bg-up/90" : "bg-down hover:bg-down/90"}
+                            disabled={placeOrder.isPending}
                         >
                             {side === "BUY" ? "Buy BTC" : "Sell BTC"}
                         </Button>

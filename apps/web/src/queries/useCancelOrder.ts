@@ -1,16 +1,17 @@
 import { api } from "@/lib/api";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function useCancelOrder() {
     const queryClient = useQueryClient();
 
-    return async (orderId: string) => {
-        try {
+    return useMutation({
+        mutationFn: async (orderId: string) => {
             await api.delete(`/orders/${orderId}`);
-        } finally {
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ["openOrders"] });
             queryClient.invalidateQueries({ queryKey: ["balance"] });
             queryClient.invalidateQueries({ queryKey: ["orderHistory"] });
         }
-    }
+    })
 }
