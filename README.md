@@ -6,6 +6,9 @@ else in the system exists to feed that process or to fan out what it produces.
 Built with TypeScript on Bun, in a Turborepo monorepo. Redis for transport, Postgres for
 the durable record.
 
+# Architecture
+<img width="1774" height="887" alt="architecture" src="https://github.com/user-attachments/assets/c931aa0e-1210-4449-aea2-d44d0a5c67a5" />
+
 ## Why it is shaped this way
 
 An exchange has one hard constraint: two orders must never match against the same
